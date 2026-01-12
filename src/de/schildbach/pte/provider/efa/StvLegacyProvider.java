@@ -57,7 +57,7 @@ public class StvLegacyProvider extends AbstractEfaProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final int maxDistance,
             final int maxLocations,
             final Set<Product> products) throws IOException {
@@ -75,11 +75,11 @@ public class StvLegacyProvider extends AbstractEfaProvider {
             final String stationId,
             final @Nullable Date time,
             final int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         requireNonNull(stationId);
 
-        return queryDeparturesMobile(stationId, time, maxDepartures, equivs);
+        return queryDeparturesMobile(stationId, time, maxDepartures, equivsMode);
     }
 
     @Override

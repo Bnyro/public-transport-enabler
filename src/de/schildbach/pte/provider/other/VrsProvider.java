@@ -394,7 +394,7 @@ public class VrsProvider extends AbstractNetworkProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final int maxDistance,
             final int maxLocations,
             final Set<Product> products) throws IOException {
@@ -466,7 +466,7 @@ public class VrsProvider extends AbstractNetworkProvider {
             final String stationId,
             final @Nullable Date time,
             final int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         requireNonNull(stationId);
 

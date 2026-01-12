@@ -393,12 +393,12 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
             final String stationId,
             final @Nullable Date time,
             final int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         requireNonNull(stationId);
 
         final HttpUrl.Builder url = stationBoardEndpoint.newBuilder().addPathSegment(apiLanguage);
-        appendXmlStationBoardParameters(url, time, stationId, maxDepartures, equivs, "vs_java3");
+        appendXmlStationBoardParameters(url, time, stationId, maxDepartures, equivsMode == EquivalentStationsMode.KEEP_DISTINCT, "vs_java3");
         return xmlStationBoard(url.build(), stationId);
     }
 
@@ -2185,7 +2185,7 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final int maxDistance,
             final int maxLocations,
             final Set<Product> products) throws IOException {

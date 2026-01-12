@@ -935,7 +935,7 @@ public abstract class DbWebProvider extends DbProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             int maxDistance,
             int maxLocations,
             final Set<Product> products) throws IOException {
@@ -975,9 +975,11 @@ public abstract class DbWebProvider extends DbProvider {
 
     @Override
     public QueryDeparturesResult queryDepartures(
-            final String stationId, @Nullable final Date time,
-            int maxDepartures, final boolean equivs,
-            Set<Product> products)
+            final String stationId,
+            @Nullable final Date time,
+            int maxDepartures,
+            final EquivalentStationsMode equivsMode,
+            final Set<Product> products)
             throws IOException {
         // TODO only 1 hour of results returned, find secret parameter?
         if (maxDepartures == 0)
@@ -1014,7 +1016,7 @@ public abstract class DbWebProvider extends DbProvider {
                 final String bahnhofsId = dep.getString("bahnhofsId");
                 final JSONArray vias = dep.optJSONArray("ueber");
                 final String bahnhofsName = Optional.ofNullable(vias).map(via -> via.optString(0)).orElse(null);
-                if (!equivs && !stationId.equals(bahnhofsId)) {
+                if (equivsMode == EquivalentStationsMode.USE_META && !stationId.equals(bahnhofsId)) {
                     continue;
                 }
                 final Location location = createLocation(LocationType.STATION, bahnhofsId, null, bahnhofsName, null, null);

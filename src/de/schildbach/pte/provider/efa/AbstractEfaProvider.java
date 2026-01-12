@@ -857,7 +857,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final int maxDistance,
             final int maxLocations,
             final Set<Product> products) throws IOException {
@@ -1514,11 +1514,11 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             final String stationId,
             final @Nullable Date time,
             final int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         requireNonNull(stationId);
 
-        return xsltDepartureMonitorRequest(stationId, time, maxDepartures, equivs);
+        return xsltDepartureMonitorRequest(stationId, time, maxDepartures, equivsMode != EquivalentStationsMode.KEEP_DISTINCT);
     }
 
     protected void appendDepartureMonitorRequestParameters(final HttpUrl.Builder url, final String stationId,
@@ -1718,9 +1718,9 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     }
 
     protected QueryDeparturesResult queryDeparturesMobile(final String stationId, final @Nullable Date time,
-            final int maxDepartures, final boolean equivs) throws IOException {
+            final int maxDepartures, final EquivalentStationsMode equivsMode) throws IOException {
         final HttpUrl.Builder url = departureMonitorEndpoint.newBuilder();
-        appendDepartureMonitorRequestParameters(url, stationId, time, maxDepartures, equivs);
+        appendDepartureMonitorRequestParameters(url, stationId, time, maxDepartures, equivsMode == EquivalentStationsMode.KEEP_DISTINCT);
         final AtomicReference<QueryDeparturesResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {

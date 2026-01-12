@@ -607,7 +607,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
         if (location.hasId()) {
             return Arrays.asList(location);
         } else if (location.hasCoord()) {
-            return queryNearbyLocations(EnumSet.of(location.type), location, false, -1, -1, null).locations;
+            return queryNearbyLocations(EnumSet.of(location.type), location, EquivalentStationsMode.USE_META, -1, -1, null).locations;
         } else if (location.hasName()) {
             return queryLocationsByName(location.name, EnumSet.of(location.type));
         } else {
@@ -728,7 +728,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final int maxDistance,
             final int maxLocations,
             final Set<Product> products) throws IOException {
@@ -792,7 +792,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
             final String stationId,
             final @Nullable Date time,
             final int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         // The stationId does not need the / character escaped
         HttpUrl url = buildApiUrl("locations/" + stationId + "/departure-times", new ArrayList<QueryParameter>());
@@ -817,7 +817,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
                     JSONObject location = locations.getJSONObject(l);
 
                     // Ignore if equivs is false and stationId is not a strict match
-                    if (!equivs && !location.getString("id").equals(stationId)) {
+                    if (equivsMode == EquivalentStationsMode.USE_META && !location.getString("id").equals(stationId)) {
                         continue;
                     }
 

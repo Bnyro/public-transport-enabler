@@ -947,7 +947,7 @@ public abstract class DbMovasProvider extends DbProvider {
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
             final Location location,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             int maxDistance,
             int maxLocations,
             final Set<Product> products) throws IOException {
@@ -1007,7 +1007,7 @@ public abstract class DbMovasProvider extends DbProvider {
             final String stationId,
             final @Nullable Date time,
             int maxDepartures,
-            final boolean equivs,
+            final EquivalentStationsMode equivsMode,
             final Set<Product> products) throws IOException {
         // TODO only 1 hour of results returned, find secret parameter?
         if (maxDepartures == 0)
@@ -1037,7 +1037,7 @@ public abstract class DbMovasProvider extends DbProvider {
 //                    continue;
 //                }
                 final Location location = parseLocation(dep.optJSONObject("abfrageOrt"));
-                if (!equivs && !stationId.equals(location.id)) {
+                if (equivsMode == EquivalentStationsMode.USE_META && !stationId.equals(location.id)) {
                     continue;
                 }
                 StationDepartures stationDepartures = result.findStationDepartures(location.id);

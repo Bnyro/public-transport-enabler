@@ -96,6 +96,12 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
 
     TimeZone getTimeZone();
 
+    enum EquivalentStationsMode {
+        KEEP_DISTINCT,
+        COMBINE_SAME_NAME,
+        USE_META,
+    }
+
     /**
      * Find locations near to given location. At least one of lat/lon pair or station id must be present in
      * that location.
@@ -104,8 +110,8 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
      *            types of locations to find
      * @param location
      *            location to determine nearby stations
-     * @param equivs
-     *            true if return master (meta) stations, false to return each particular sub-station
+     * @param equivsMode
+     *            whether to return master (meta) stations, or each particular sub-station
      * @param maxDistance
      *            maximum distance in meters, or {@code 0}
      * @param maxLocations
@@ -118,7 +124,7 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
     NearbyLocationsResult queryNearbyLocations(
             Set<LocationType> types,
             Location location,
-            boolean equivs,
+            EquivalentStationsMode equivsMode,
             int maxDistance,
             int maxLocations,
             Set<Product> products) throws IOException;
@@ -132,8 +138,8 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
      *            desired time for departing, or {@code null} for the provider default
      * @param maxDepartures
      *            maximum number of departures to get or {@code 0}
-     * @param equivs
-     *            also query equivalent stations?
+     * @param equivsMode
+     *            how to handle equivalent stations
      * @param products
      *            filter to stations serving listed products, or {@code null}
      * @return result object containing the departures
@@ -143,7 +149,7 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
             String stationId,
             @Nullable Date time,
             int maxDepartures,
-            boolean equivs,
+            EquivalentStationsMode equivsMode,
             Set<Product> products) throws IOException;
 
     /**
