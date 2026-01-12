@@ -1448,6 +1448,8 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
                 return new Line(id, network, null, trainName);
             if (trainName == null && trainType == null && trainNum != null)
                 return new Line(id, network, null, trainNum);
+            if (trainName == null && trainType == null && trainNum == null)
+                return new Line(id, network, null, "???");
         } else if ("1".equals(mot)) {
             if (symbol != null)
                 return new Line(id, network, Product.SUBURBAN_TRAIN, symbol);
@@ -2039,7 +2041,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         String itdDelay = null;
         if (XmlPullUtil.test(pp, "itdTrain")) {
             itdTrainName = XmlPullUtil.optAttr(pp, "name", null);
-            itdTrainType = XmlPullUtil.attr(pp, "type");
+            itdTrainType = XmlPullUtil.optAttr(pp, "type", null);
             itdDelay = XmlPullUtil.optAttr(pp, "delay", null);
             XmlPullUtil.requireSkip(pp, "itdTrain");
         }
