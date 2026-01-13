@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.hafas.VbnProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -56,32 +57,32 @@ public class VbnProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDeparturesFreudenstadt() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8000110", false);
+        final QueryDeparturesResult result = queryDepartures("8000110", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
     }
 
     @Test
     public void queryDeparturesGoettingen() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8000128", false);
+        final QueryDeparturesResult result = queryDepartures("8000128", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
     }
 
     @Test
     public void queryDeparturesRostockHbf() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8010304", false);
+        final QueryDeparturesResult result = queryDepartures("8010304", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
     }
 
     @Test
     public void queryDeparturesEquivs() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8010304", true);
+        final QueryDeparturesResult result = queryDepartures("8010304", NetworkProvider.EquivalentStationsMode.KEEP_DISTINCT);
         print(result);
         assertTrue(result.stationDepartures.size() > 1);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

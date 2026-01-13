@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.hafas.BvgProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -64,49 +65,49 @@ public class BvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDeparturesWilmsstrasse() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900016254", false);
+        final QueryDeparturesResult result = queryDepartures("900016254", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
         assertEquals(QueryDeparturesResult.Status.OK, result.status);
     }
 
     @Test
     public void queryDeparturesAlexanderplatzBhf() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900100003", false);
+        final QueryDeparturesResult result = queryDepartures("900100003", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
         assertEquals(QueryDeparturesResult.Status.OK, result.status);
     }
 
     @Test
     public void queryDeparturesAlexanderplatzU2() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900100703", false);
+        final QueryDeparturesResult result = queryDepartures("900100703", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
         assertEquals(QueryDeparturesResult.Status.OK, result.status);
     }
 
     @Test
     public void queryDeparturesAlexanderplatzU5() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900100704", false);
+        final QueryDeparturesResult result = queryDepartures("900100704", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
         assertEquals(QueryDeparturesResult.Status.OK, result.status);
     }
 
     @Test
     public void queryDeparturesAlexanderplatzU8() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900100705", false);
+        final QueryDeparturesResult result = queryDepartures("900100705", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
         assertEquals(QueryDeparturesResult.Status.OK, result.status);
     }
 
     @Test
     public void queryDeparturesEquivs() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("900100003", true);
+        final QueryDeparturesResult result = queryDepartures("900100003", NetworkProvider.EquivalentStationsMode.KEEP_DISTINCT);
         print(result);
         assertTrue(result.stationDepartures.size() > 1);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

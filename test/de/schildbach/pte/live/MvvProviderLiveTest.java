@@ -27,6 +27,7 @@ import java.util.EnumSet;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.efa.MvvProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -69,14 +70,14 @@ public class MvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDeparturesMarienplatz() throws Exception {
-        final QueryDeparturesResult result1 = queryDepartures("91000002", false);
+        final QueryDeparturesResult result1 = queryDepartures("91000002", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.OK, result1.status);
         print(result1);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

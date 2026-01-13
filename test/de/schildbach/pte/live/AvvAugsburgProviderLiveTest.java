@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.hafas.AvvAugsburgProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -52,13 +53,13 @@ public class AvvAugsburgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8000013", false); // Hbf
+        final QueryDeparturesResult result = queryDepartures("8000013", NetworkProvider.EquivalentStationsMode.USE_META); // Hbf
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

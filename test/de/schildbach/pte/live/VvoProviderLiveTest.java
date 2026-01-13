@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.efa.VvoProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -57,13 +58,13 @@ public class VvoProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("100", false);
+        final QueryDeparturesResult result = queryDepartures("100", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

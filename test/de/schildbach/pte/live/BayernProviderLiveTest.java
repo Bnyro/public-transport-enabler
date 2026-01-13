@@ -27,6 +27,7 @@ import java.util.EnumSet;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.efa.BayernProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -68,25 +69,25 @@ public class BayernProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult munichMarienplatz = queryDepartures("91000002", false);
+        final QueryDeparturesResult munichMarienplatz = queryDepartures("91000002", NetworkProvider.EquivalentStationsMode.USE_META);
         print(munichMarienplatz);
 
-        final QueryDeparturesResult munichHauptbahnhof = queryDepartures("91000006", false);
+        final QueryDeparturesResult munichHauptbahnhof = queryDepartures("91000006", NetworkProvider.EquivalentStationsMode.USE_META);
         print(munichHauptbahnhof);
 
-        final QueryDeparturesResult nurembergHauptbahnhof = queryDepartures("80001020", false);
+        final QueryDeparturesResult nurembergHauptbahnhof = queryDepartures("80001020", NetworkProvider.EquivalentStationsMode.USE_META);
         print(nurembergHauptbahnhof);
 
-        final QueryDeparturesResult augsburgAfrabruecke = queryDepartures("2000770", false);
+        final QueryDeparturesResult augsburgAfrabruecke = queryDepartures("2000770", NetworkProvider.EquivalentStationsMode.USE_META);
         print(augsburgAfrabruecke);
 
-        final QueryDeparturesResult ingolstadtHbf = queryDepartures("80000706", false);
+        final QueryDeparturesResult ingolstadtHbf = queryDepartures("80000706", NetworkProvider.EquivalentStationsMode.USE_META);
         print(ingolstadtHbf);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

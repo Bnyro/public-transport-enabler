@@ -92,20 +92,20 @@ public abstract class AbstractProviderLiveTest {
 
     protected final NearbyLocationsResult queryNearbyLocations(final Set<LocationType> types, final Location location,
             final int maxDistance, final int maxStations) throws IOException {
-        return provider.queryNearbyLocations(types, location, false, maxDistance, maxStations, null);
+        return provider.queryNearbyLocations(types, location, NetworkProvider.EquivalentStationsMode.USE_META, maxDistance, maxStations, null);
     }
 
-    protected final QueryDeparturesResult queryDepartures(final String stationId, final boolean equivs)
+    protected final QueryDeparturesResult queryDepartures(final String stationId, final NetworkProvider.EquivalentStationsMode equivs)
             throws IOException {
         return queryDepartures(stationId, 5, equivs);
     }
 
     protected final QueryDeparturesResult queryDepartures(final String stationId, final int maxDepartures,
-            final boolean equivs) throws IOException {
+            final NetworkProvider.EquivalentStationsMode equivs) throws IOException {
         final QueryDeparturesResult result = provider.queryDepartures(stationId, new Date(), maxDepartures, equivs, null);
 
         if (result.status == QueryDeparturesResult.Status.OK) {
-            if (equivs)
+            if (equivs == NetworkProvider.EquivalentStationsMode.KEEP_DISTINCT)
                 assertTrue(result.stationDepartures.size() > 1);
             else
                 assertTrue(result.stationDepartures.size() == 1);

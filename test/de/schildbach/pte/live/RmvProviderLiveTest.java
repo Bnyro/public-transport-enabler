@@ -17,6 +17,7 @@
 
 package de.schildbach.pte.live;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.NetworkProvider.Accessibility;
 import de.schildbach.pte.provider.NetworkProvider.WalkSpeed;
 import de.schildbach.pte.provider.hafas.RmvProvider;
@@ -55,28 +56,28 @@ public class RmvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("3000408", false);
+        final QueryDeparturesResult result = queryDepartures("3000408", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
 
-        final QueryDeparturesResult result2 = queryDepartures("3000010", false);
+        final QueryDeparturesResult result2 = queryDepartures("3000010", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result2);
 
-        final QueryDeparturesResult result3 = queryDepartures("3015989", false);
+        final QueryDeparturesResult result3 = queryDepartures("3015989", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result3);
 
-        final QueryDeparturesResult result4 = queryDepartures("3000139", false);
+        final QueryDeparturesResult result4 = queryDepartures("3000139", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result4);
     }
 
     @Test
     public void queryDeparturesEquivs() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("3000010", true);
+        final QueryDeparturesResult result = queryDepartures("3000010", NetworkProvider.EquivalentStationsMode.KEEP_DISTINCT);
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

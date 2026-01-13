@@ -27,6 +27,7 @@ import java.util.EnumSet;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.db.DbProvider;
 import de.schildbach.pte.provider.NetworkProvider.Accessibility;
 import de.schildbach.pte.provider.NetworkProvider.WalkSpeed;
@@ -68,13 +69,13 @@ public class DbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("692990", false);
+        final QueryDeparturesResult result = queryDepartures("692990", NetworkProvider.EquivalentStationsMode.USE_META);
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult resultLive = queryDepartures("999999", false);
+        final QueryDeparturesResult resultLive = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, resultLive.status);
     }
 

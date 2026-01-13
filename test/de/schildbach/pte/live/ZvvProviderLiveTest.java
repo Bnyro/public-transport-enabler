@@ -23,6 +23,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.hafas.ZvvProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -48,31 +49,31 @@ public class ZvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDepartures() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8503000", false); // Hauptbahnhof
+        final QueryDeparturesResult result = queryDepartures("8503000", NetworkProvider.EquivalentStationsMode.USE_META); // Hauptbahnhof
         print(result);
     }
 
     @Test
     public void queryDeparturesSuburbanTrain() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8500169", false); // Muriaux
+        final QueryDeparturesResult result = queryDepartures("8500169", NetworkProvider.EquivalentStationsMode.USE_META); // Muriaux
         print(result);
     }
 
     @Test
     public void queryDeparturesTram() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8591276", false); // Milchbuck
+        final QueryDeparturesResult result = queryDepartures("8591276", NetworkProvider.EquivalentStationsMode.USE_META); // Milchbuck
         print(result);
     }
 
     @Test
     public void queryDeparturesTrolley() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("8591177", false); // Hardplatz
+        final QueryDeparturesResult result = queryDepartures("8591177", NetworkProvider.EquivalentStationsMode.USE_META); // Hardplatz
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 

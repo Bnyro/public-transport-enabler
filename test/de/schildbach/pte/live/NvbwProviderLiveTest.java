@@ -26,6 +26,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import de.schildbach.pte.provider.NetworkProvider;
 import de.schildbach.pte.provider.efa.NvbwProvider;
 import de.schildbach.pte.dto.Location;
 import de.schildbach.pte.dto.LocationType;
@@ -81,31 +82,31 @@ public class NvbwProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void queryDeparturesStuttgart() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("5006022", false); // Schlossplatz
+        final QueryDeparturesResult result = queryDepartures("5006022", NetworkProvider.EquivalentStationsMode.USE_META); // Schlossplatz
         print(result);
     }
 
     @Test
     public void queryDeparturesReutlingen() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("53019174", false); // Reutlingen
+        final QueryDeparturesResult result = queryDepartures("53019174", NetworkProvider.EquivalentStationsMode.USE_META); // Reutlingen
         print(result);
     }
 
     @Test
     public void queryDeparturesKarlsruhe() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("7000211", false); // Messe
+        final QueryDeparturesResult result = queryDepartures("7000211", NetworkProvider.EquivalentStationsMode.USE_META); // Messe
         print(result);
     }
 
     @Test
     public void queryDeparturesFreiburg() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("6930112", false); // Faulerstraße
+        final QueryDeparturesResult result = queryDepartures("6930112", NetworkProvider.EquivalentStationsMode.USE_META); // Faulerstraße
         print(result);
     }
 
     @Test
     public void queryDeparturesInvalidStation() throws Exception {
-        final QueryDeparturesResult result = queryDepartures("999999", false);
+        final QueryDeparturesResult result = queryDepartures("999999", NetworkProvider.EquivalentStationsMode.USE_META);
         assertEquals(QueryDeparturesResult.Status.INVALID_STATION, result.status);
     }
 
