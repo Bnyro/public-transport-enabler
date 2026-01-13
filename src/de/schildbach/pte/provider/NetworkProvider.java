@@ -98,7 +98,7 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
 
     enum EquivalentStationsMode {
         KEEP_DISTINCT,
-        COMBINE_SAME_NAME,
+        META_IF_SAME_NAME,
         USE_META,
     }
 

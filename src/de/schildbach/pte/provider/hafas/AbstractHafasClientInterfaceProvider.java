@@ -695,7 +695,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
 
             final JSONObject match = res.getJSONObject("match");
             final JSONArray crdSysList = common.optJSONArray("crdSysL");
-            final List<Location> locations = parseLocList(match.optJSONArray("locL"), crdSysList, commonLocL, EquivalentStationsMode.COMBINE_SAME_NAME);
+            final List<Location> locations = parseLocList(match.optJSONArray("locL"), crdSysList, commonLocL, EquivalentStationsMode.META_IF_SAME_NAME);
             final List<SuggestedLocation> suggestedLocations = new ArrayList<>(locations.size());
             for (final Location location : locations)
                 suggestedLocations.add(new SuggestedLocation(location));
