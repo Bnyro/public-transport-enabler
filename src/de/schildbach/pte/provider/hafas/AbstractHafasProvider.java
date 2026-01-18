@@ -53,12 +53,13 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
             Capability.TRIPS_VIA,
             Capability.JOURNEY,
             Capability.TRIP_RELOAD,
+            Capability.DIRECT_OPTION,
             Capability.BIKE_OPTION
     );
 
     protected static final Logger log = LoggerFactory.getLogger(AbstractHafasProvider.class);
 
-    private Product[] productsMap;
+    private final Product[] productsMap;
 
     protected AbstractHafasProvider(final NetworkId network, final Product[] productsMap) {
         super(network);
@@ -72,8 +73,8 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
 
     protected final String productsString(final Set<Product> products) {
         final StringBuilder productsStr = new StringBuilder(productsMap.length);
-        for (int i = 0; i < productsMap.length; i++) {
-            if (productsMap[i] != null && products.contains(productsMap[i]))
+        for (final Product product : productsMap) {
+            if (product != null && products.contains(product))
                 productsStr.append('1');
             else
                 productsStr.append('0');

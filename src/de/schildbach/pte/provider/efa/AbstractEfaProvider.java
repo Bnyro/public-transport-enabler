@@ -110,6 +110,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             Capability.TRIPS,
             Capability.TRIPS_VIA,
             Capability.JOURNEY,
+            Capability.DIRECT_OPTION,
             Capability.BIKE_OPTION
     );
 
@@ -2184,8 +2185,12 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         url.addEncodedQueryParameter("trITMOTvalue100", "10"); // maximum time to walk to first or from last
                                                                // stop
 
-        if (options.flags != null && options.flags.contains(TripFlag.BIKE))
-            url.addEncodedQueryParameter("bikeTakeAlong", "1");
+        if (options.flags != null) {
+            if (options.flags.contains(TripFlag.DIRECT))
+                url.addEncodedQueryParameter("maxChanges", "0");
+            if (options.flags.contains(TripFlag.BIKE))
+                url.addEncodedQueryParameter("bikeTakeAlong", "1");
+        }
 
         url.addEncodedQueryParameter("locationServerActive", "1");
         url.addEncodedQueryParameter("useRealtime", "1");

@@ -44,6 +44,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -143,6 +144,7 @@ public abstract class DbMovasProvider extends DbProvider {
             Capability.JOURNEY,
             Capability.TRIP_RELOAD,
             Capability.MIN_TRANSFER_TIMES,
+            Capability.DIRECT_OPTION,
             Capability.BIKE_OPTION,
             Capability.TRIP_SHARING,
             Capability.TRIP_LINKING,
@@ -694,7 +696,7 @@ public abstract class DbMovasProvider extends DbProvider {
                 new DbJourneyRef(journeyRef.journeyId, null, journeyRef.line));
     }
 
-    private Trip.Leg parseLeg(final JSONObject abschnitt, final String journeyRequestId) throws JSONException {
+    private Trip.Leg parseLeg(final JSONObject abschnitt, final Supplier<String> journeyRequestId) throws JSONException {
         Stop departureStop = null;
         Stop arrivalStop = null;
         final String typ = abschnitt.optString("typ", null);
@@ -716,7 +718,7 @@ public abstract class DbMovasProvider extends DbProvider {
             final String message = parseJourneyMessages(abschnitt, null);
             final String journeyId = abschnitt.optString("zuglaufId", null);
             return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, null, message,
-                    journeyId == null ? null : new DbJourneyRef(journeyId, journeyRequestId, line));
+                    journeyId == null ? null : new DbJourneyRef(journeyId, journeyRequestId.get(), line));
         } else {
             final int dist = abschnitt.optInt("distanz");
             if (dist == 0 && departureStop.location.id.equals(arrivalStop.location.id)) {
@@ -782,7 +784,7 @@ public abstract class DbMovasProvider extends DbProvider {
         Trip.Public prevPublicLegWithArrivalSamePlatform = null;
         for (int iLeg = 0; iLeg < abschnitte.length(); iLeg++) {
             final JSONObject abschnitt = abschnitte.getJSONObject(iLeg);
-            final Trip.Leg leg = parseLeg(abschnitt, itJourneyRequestIds.next());
+            final Trip.Leg leg = parseLeg(abschnitt, itJourneyRequestIds::next);
             if (leg == null) continue;
             if (leg instanceof Trip.Public) {
                 final Trip.Public publicLeg = (Trip.Public) leg;
@@ -823,8 +825,16 @@ public abstract class DbMovasProvider extends DbProvider {
                 transfers == -1 ? null : transfers);
     }
 
-    private QueryTripsResult doQueryTrips(Location from, @Nullable Location via, Location to, Date time, boolean dep,
-            @Nullable Set<Product> products, final boolean bike, @Nullable final Integer minUmstiegsdauer,
+    private QueryTripsResult doQueryTrips(
+            final Location from,
+            @Nullable final Location via,
+            final Location to,
+            final Date time,
+            final boolean dep,
+            @Nullable final Set<Product> products,
+            final boolean direct,
+            final boolean bike,
+            @Nullable final Integer minUmstiegsdauer,
             final @Nullable String context) throws IOException {
         // accessibility, optimize not supported
 
@@ -857,6 +867,7 @@ public abstract class DbMovasProvider extends DbProvider {
         final String viaLocations = via != null
                 ? "\"viaLocations\":[{\"locationId\": \"" + formatLid(via) + "\"," + productsStr + "}],"
                 : "";
+        final String directStr = direct ? "\"maxUmstiege\":0," : "";
         final String bikeStr = bike ? "\"fahrradmitnahme\":true," : "";
         final String minUmstiegsdauerStr = minUmstiegsdauer != null ? "\"minUmstiegsdauer\":" + minUmstiegsdauer + "," : "";
         final String ctxStr = context != null ? "\"context\": \"" + context + "\"," : "";
@@ -864,6 +875,7 @@ public abstract class DbMovasProvider extends DbProvider {
                 + "\"reiseHin\":{\"wunsch\":{\"abgangsLocationId\": \"" + formatLid(from) + "\"," //
                 + productsStr + "," //
                 + viaLocations //
+                + directStr //
                 + bikeStr //
                 + minUmstiegsdauerStr //
                 + ctxStr //
@@ -891,10 +903,10 @@ public abstract class DbMovasProvider extends DbProvider {
             if (trips.isEmpty()) {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
             }
-            final DbMovasContext ctx = new DbMovasContext(from, via, to, time, dep, products, bike, minUmstiegsdauer,
+            final DbMovasContext ctx = new DbMovasContext(from, via, to, time, dep, products, direct, bike, minUmstiegsdauer,
                     res.optString("spaeterContext", null), res.optString("frueherContext", null));
             return new QueryTripsResult(this.resultHeader, null, from, via, to, ctx, trips);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if ("MDA-AK-MSG-1001".equals(code)) {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.INVALID_DATE);
@@ -902,7 +914,7 @@ public abstract class DbMovasProvider extends DbProvider {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1115,18 +1127,22 @@ public abstract class DbMovasProvider extends DbProvider {
     }
 
     @Override
-    public QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
-            @Nullable TripOptions options) throws IOException {
+    public QueryTripsResult queryTrips(
+            final Location from, @Nullable final Location via, final Location to,
+            final Date date, final boolean dep,
+            @Nullable final TripOptions options) throws IOException {
+        final Set<TripFlag> tripFlags = options == null ? null : options.flags;
         return doQueryTrips(from, via, to, date, dep,
                 options != null ? options.products : null,
-                options != null && options.flags != null && options.flags.contains(TripFlag.BIKE),
+                tripFlags != null && tripFlags.contains(TripFlag.DIRECT),
+                tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options == null || options.minTransferTimeMinutes == null ? null
                         : getApplicableMinTransferTime(options.minTransferTimeMinutes),
                 null);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
         final DbMovasContext ctx = (DbMovasContext) context;
         final String ctxToken;
         if (later && ctx.canQueryLater()) {
@@ -1136,7 +1152,7 @@ public abstract class DbMovasProvider extends DbProvider {
         } else {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
         }
-        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.bike, ctx.minUmstiegsdauer, ctxToken);
+        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegsdauer, ctxToken);
     }
 
     @Override
@@ -1186,12 +1202,17 @@ public abstract class DbMovasProvider extends DbProvider {
         public final Date date;
         public final boolean dep;
         public final Set<Product> products;
+        public final boolean direct;
         public final boolean bike;
         public final Integer minUmstiegsdauer;
         public final String laterContext, earlierContext;
 
-        public DbMovasContext(final Location from, final @Nullable Location via, final Location to, final Date date,
-                final boolean dep, final Set<Product> products, final boolean bike, final Integer minUmstiegsdauer,
+        public DbMovasContext(
+                final Location from, final @Nullable Location via, final Location to,
+                final Date date, final boolean dep,
+                final Set<Product> products,
+                final boolean direct, final boolean bike,
+                final Integer minUmstiegsdauer,
                 final String laterContext, final String earlierContext) {
             this.from = from;
             this.via = via;
@@ -1199,6 +1220,7 @@ public abstract class DbMovasProvider extends DbProvider {
             this.date = date;
             this.dep = dep;
             this.products = products;
+            this.direct = direct;
             this.bike = bike;
             this.minUmstiegsdauer = minUmstiegsdauer;
             this.laterContext = laterContext;

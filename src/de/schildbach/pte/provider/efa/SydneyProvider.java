@@ -48,6 +48,7 @@ public class SydneyProvider extends AbstractEfaProvider {
     static {
         final Set<Capability> capabilities = new HashSet<>(CAPABILITIES);
         capabilities.remove(Capability.JOURNEY);
+        capabilities.remove(Capability.DIRECT_OPTION);
         capabilities.remove(Capability.BIKE_OPTION);
         SYDNEY_CAPABILITIES = capabilities;
     }

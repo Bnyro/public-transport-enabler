@@ -65,6 +65,7 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
         TRIP_RELOAD,
         MIN_TRANSFER_TIMES,
         BIKE_OPTION,
+        DIRECT_OPTION,
         TRIP_SHARING,
         TRIP_LINKING,
         TRIP_DETAILS,
@@ -83,7 +84,8 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
     }
 
     enum TripFlag {
-        BIKE
+        BIKE,
+        DIRECT
     }
 
     enum TripDetails {

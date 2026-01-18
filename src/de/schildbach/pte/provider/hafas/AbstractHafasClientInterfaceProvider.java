@@ -271,14 +271,20 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     @Override
     public QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
             final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
-        return jsonTripSearch(from, via, to, date, dep, options != null ? options.products : null,
-                options != null ? options.walkSpeed : null, null);
+        final Set<TripFlag> tripFlags = options == null ? null : options.flags;
+        return jsonTripSearch(from, via, to, date, dep,
+                tripFlags != null && tripFlags.contains(TripFlag.DIRECT),
+                tripFlags != null && tripFlags.contains(TripFlag.BIKE),
+                options != null ? options.products : null,
+                options != null ? options.walkSpeed : null,
+                null);
     }
 
     @Override
     public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
         final JsonContext jsonContext = (JsonContext) context;
         return jsonTripSearch(jsonContext.from, jsonContext.via, jsonContext.to, jsonContext.date, jsonContext.dep,
+                jsonContext.direct, jsonContext.bike,
                 jsonContext.products, jsonContext.walkSpeed, later ? jsonContext.laterContext : jsonContext.earlierContext);
     }
 
@@ -806,9 +812,10 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
 
     protected final QueryTripsResult jsonTripRequest(
             final String method, final String request,
-            Location from, @Nullable Location via, Location to,
-            final Date time,
-            final boolean dep, final Set<Product> products, final WalkSpeed walkSpeed) throws IOException {
+            final Location from, @Nullable final Location via, final Location to,
+            final Date time, final boolean dep,
+            final boolean direct, final boolean bike,
+            final Set<Product> products, final WalkSpeed walkSpeed) throws IOException {
         final Calendar c = new GregorianCalendar(timeZone);
         c.setTime(time);
 
@@ -1077,7 +1084,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 trips.add(trip);
             }
 
-            final JsonContext context = new JsonContext(from, via, to, time, dep, products, walkSpeed,
+            final JsonContext context = new JsonContext(
+                    from, via, to, time, dep, direct, bike, products, walkSpeed,
                     res.optString("outCtxScrF"), res.optString("outCtxScrB"));
             return new QueryTripsResult(header, null, from, null, to, context, trips);
         } catch (final JSONException x) {
@@ -1089,8 +1097,12 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return "";
     }
 
-    protected final QueryTripsResult jsonTripSearch(Location from, @Nullable Location via, Location to, final Date time,
-            final boolean dep, final @Nullable Set<Product> products, final @Nullable WalkSpeed walkSpeed,
+    protected final QueryTripsResult jsonTripSearch(
+            Location from, @Nullable Location via, Location to,
+            final Date time, final boolean dep,
+            final boolean direct,
+            final boolean bike,
+            final @Nullable Set<Product> products, final @Nullable WalkSpeed walkSpeed,
             final @Nullable String moreContext) throws IOException {
         from = jsonTripSearchIdentify(from);
         if (from == null)
@@ -1135,10 +1147,11 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 + meta + "\"}]," //
                 + "\"getPolyline\":true,\"getPasslist\":true," //
                 + (apiLevel <= 24 ? "\"getConGroups\":false," : "") //
+                + (direct ? "\"maxChg\":0," : "") //
                 + "\"getIST\":false,\"getEco\":false,\"minChgTime\":-1,\"extChgTime\":-1}", //
                 false);
 
-        return jsonTripRequest("TripSearch", request, from, via, to, time, dep, products, walkSpeed);
+        return jsonTripRequest("TripSearch", request, from, via, to, time, dep, direct, bike, products, walkSpeed);
     }
 
     private QueryTripsResult jsonTripReload(final HafasTripRef tripRef) throws IOException {
@@ -1150,7 +1163,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 false);
 
         return jsonTripRequest("Reconstruction", request, tripRef.from, tripRef.via, tripRef.to,
-                new Date(), true, null, null);
+                new Date(), true, false, false, null, null);
     }
 
     private QueryJourneyResult jsonJourney(HafasJourneyRef journeyRef) throws IOException {
@@ -1802,18 +1815,26 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         public final Location from, via, to;
         public final Date date;
         public final boolean dep;
+        public final boolean direct;
+        public final boolean bike;
         public final Set<Product> products;
         public final WalkSpeed walkSpeed;
         public final String laterContext, earlierContext;
 
-        public JsonContext(final Location from, final @Nullable Location via, final Location to, final Date date,
-                final boolean dep, final Set<Product> products, final WalkSpeed walkSpeed, final String laterContext,
+        public JsonContext(
+                final Location from, final @Nullable Location via, final Location to,
+                final Date date, final boolean dep,
+                final boolean direct, final boolean bike,
+                final Set<Product> products,
+                final WalkSpeed walkSpeed, final String laterContext,
                 final String earlierContext) {
             this.from = from;
             this.via = via;
             this.to = to;
             this.date = date;
             this.dep = dep;
+            this.direct = direct;
+            this.bike = bike;
             this.products = products;
             this.walkSpeed = walkSpeed;
             this.laterContext = laterContext;

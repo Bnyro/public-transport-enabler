@@ -148,6 +148,7 @@ public abstract class DbWebProvider extends DbProvider {
             Capability.JOURNEY,
             Capability.TRIP_RELOAD,
             Capability.MIN_TRANSFER_TIMES,
+            Capability.DIRECT_OPTION,
             Capability.BIKE_OPTION,
             Capability.TRIP_SHARING,
             Capability.TRIP_LINKING,
@@ -825,7 +826,9 @@ public abstract class DbWebProvider extends DbProvider {
     private QueryTripsResult doQueryTrips(
             final Location from, @Nullable final Location via, final Location to,
             final Date time, final boolean dep,
-            @Nullable final Set<Product> products, final boolean bike, @Nullable final Integer minUmstiegszeit,
+            @Nullable final Set<Product> products,
+            final boolean direct, final boolean bike,
+            @Nullable final Integer minUmstiegszeit,
             final @Nullable String context) throws IOException {
         // accessibility, optimize not supported
 
@@ -859,6 +862,7 @@ public abstract class DbWebProvider extends DbProvider {
                 + ",\"nurDeutschlandTicketVerbindungen\":" + limitToDticket;
         final String viaLocations = via == null ? ""
                 : ",\"zwischenhalte\":[{\"id\": \"" + formatLid(via) + "\"}]";
+        final String directStr = direct ? ",\"maxUmstiege\":0" : "";
         final String bikeStr = bike ? ",\"bikeCarriage\":true" : "";
         final String bikeTraveling = bike ? ",{\"typ\":\"FAHRRAD\",\"ermaessigungen\":[{\"art\":\"KEINE_ERMAESSIGUNG\",\"klasse\":\"KLASSENLOS\"}],\"alter\":[],\"anzahl\":1}" : "";
         final String minUmstiegszeitStr = minUmstiegszeit != null ? ",\"minUmstiegszeit\":" + minUmstiegszeit : "";
@@ -867,6 +871,7 @@ public abstract class DbWebProvider extends DbProvider {
                 + ",\"abfahrtsHalt\": \"" + formatLid(from) + "\"" //
                 + productsStr //
                 + viaLocations //
+                + directStr //
                 + bikeStr //
                 + minUmstiegszeitStr //
                 + ctxStr //
@@ -882,7 +887,7 @@ public abstract class DbWebProvider extends DbProvider {
             page = doRequest(url, request);
             final JSONObject res = new JSONObject(page);
             Optional<JSONObject> verbindungReference = Optional.ofNullable(res.optJSONObject("verbindungReference"));
-            final DbWebApiContext apiContext = new DbWebApiContext(from, via, to, time, dep, products, bike, minUmstiegszeit,
+            final DbWebApiContext apiContext = new DbWebApiContext(from, via, to, time, dep, products, direct, bike, minUmstiegszeit,
                     verbindungReference.map(v -> v.optString("later", null)).orElse(null),
                     verbindungReference.map(v -> v.optString("earlier", null)).orElse(null));
             return parseTrips(res, apiContext, from, via, to, limitToDticket, hasDticket);
@@ -1137,18 +1142,22 @@ public abstract class DbWebProvider extends DbProvider {
     }
 
     @Override
-    public QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
-            @Nullable TripOptions options) throws IOException {
+    public QueryTripsResult queryTrips(
+            final Location from, @Nullable final Location via, final Location to,
+            final Date date, final boolean dep,
+            @Nullable final TripOptions options) throws IOException {
+        final Set<TripFlag> tripFlags = options == null ? null : options.flags;
         return doQueryTrips(from, via, to, date, dep,
                 options != null ? options.products : null,
-                options != null && options.flags != null && options.flags.contains(TripFlag.BIKE),
+                tripFlags != null && tripFlags.contains(TripFlag.DIRECT),
+                tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options == null || options.minTransferTimeMinutes == null ? null
                         : getApplicableMinTransferTime(options.minTransferTimeMinutes),
                 null);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
         final DbWebApiContext ctx = (DbWebApiContext) context;
         final String ctxToken;
         if (later && ctx.canQueryLater()) {
@@ -1158,7 +1167,7 @@ public abstract class DbWebProvider extends DbProvider {
         } else {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
         }
-        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.bike, ctx.minUmstiegszeit, ctxToken);
+        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegszeit, ctxToken);
     }
 
     @Override
@@ -1207,19 +1216,26 @@ public abstract class DbWebProvider extends DbProvider {
         public final Date date;
         public final boolean dep;
         public final Set<Product> products;
+        public final boolean direct;
         public final boolean bike;
         public final Integer minUmstiegszeit;
         public final String laterContext, earlierContext;
 
-        public DbWebApiContext(final Location from, final @Nullable Location via, final Location to, final Date date,
-                   final boolean dep, final Set<Product> products, final boolean bike, final Integer minUmstiegszeit,
-                   final String laterContext, final String earlierContext) {
+        public DbWebApiContext(
+                final Location from, final @Nullable Location via, final Location to,
+                final Date date, final boolean dep,
+                final Set<Product> products,
+                final boolean direct,
+                final boolean bike,
+                final Integer minUmstiegszeit,
+                final String laterContext, final String earlierContext) {
             this.from = from;
             this.via = via;
             this.to = to;
             this.date = date;
             this.dep = dep;
             this.products = products;
+            this.direct = direct;
             this.bike = bike;
             this.minUmstiegszeit = minUmstiegszeit;
             this.laterContext = laterContext;
