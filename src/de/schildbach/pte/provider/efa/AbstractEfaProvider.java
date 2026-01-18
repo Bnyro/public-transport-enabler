@@ -2464,11 +2464,13 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
 
             final Location location = new Location(LocationType.STATION, id, coord, place, name);
 
-            final Stop stop = new Stop(location,
-                    plannedArrival, predictedArrival, position, null, arrivalCancelled,
-                    plannedDeparture, predictedDeparture, position, null, departureCancelled);
-
-            intermediateStops.add(stop);
+            if (plannedArrival != null || plannedDeparture != null) {
+                // only add if there is at least one time, else skip passing station
+                final Stop stop = new Stop(location,
+                        plannedArrival, predictedArrival, position, null, arrivalCancelled,
+                        plannedDeparture, predictedDeparture, position, null, departureCancelled);
+                intermediateStops.add(stop);
+            }
 
             XmlPullUtil.skipExit(pp, "p");
         }
@@ -2946,11 +2948,13 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
                 predictedStopArrivalTime = null;
             }
 
-            final Stop stop = new Stop(stopLocation,
-                    plannedStopArrivalTime, predictedStopArrivalTime, stopPosition, null, arrivalDelay == -9999,
-                    plannedStopDepartureTime, predictedStopDepartureTime, stopPosition, null, departureDelay == -9999);
-
-            intermediateStops.add(stop);
+            if (plannedStopArrivalTime != null || plannedStopDepartureTime != null) {
+                // only add if there is at least one time, else skip passing station
+                final Stop stop = new Stop(stopLocation,
+                        plannedStopArrivalTime, predictedStopArrivalTime, stopPosition, null, arrivalDelay == -9999,
+                        plannedStopDepartureTime, predictedStopDepartureTime, stopPosition, null, departureDelay == -9999);
+                intermediateStops.add(stop);
+            }
 
             XmlPullUtil.skipExit(pp, "itdPoint");
         }
@@ -3278,9 +3282,11 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
                                         ? PTDate.fromCalendar(plannedTimeCal) : null;
                                 final PTDate predictedTime = predictedTimeCal.isSet(Calendar.HOUR_OF_DAY)
                                         ? PTDate.fromCalendar(predictedTimeCal) : null;
-                                final Stop stop = new Stop(location, false, plannedTime, predictedTime, null, null);
-
-                                intermediateStops.add(stop);
+                                if (plannedTime != null || predictedTime != null) {
+                                    // only add if there is at least one time, else skip passing station
+                                    final Stop stop = new Stop(location, false, plannedTime, predictedTime, null, null);
+                                    intermediateStops.add(stop);
+                                }
                             }
                         }
 
