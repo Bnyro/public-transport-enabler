@@ -87,8 +87,8 @@ public class RmvProvider extends AbstractHafasClientInterfaceProvider {
 // the following contain spaces and must be listed here
             "Groß Gerau",
             "Bad Soden-Salmünster-Bad Soden", // special, because "Bad Soden-Salmünster-Bad Soden Schweizerhaus", but "Bad Soden-Salmünster-Salmünster Am Palmusacker" and "Bad Soden-Salmünster-Kath.-Willenroth Waldschule"
-            "Hofheim am Taunus",
-            "Bad Homburg v.d.H."
+//            "Hofheim am Taunus",
+//            "Bad Homburg v.d.H."
 // we now split using a complex Regex, so the following do not need an exception
 //            "Frankfurt (Main)",
 //            "Offenbach (Main)",
@@ -116,31 +116,7 @@ public class RmvProvider extends AbstractHafasClientInterfaceProvider {
 //        if (placeAndName.startsWith("MZ "))
 //            return new String[] {"Mainz", placeAndName.substring(3)};
 
-        for (final String place: SPECIAL_PLACES) {
-            if (!placeAndName.startsWith(place))
-                continue;
-
-            final int placeLength = place.length();
-            final String trailer = placeAndName.substring(placeLength);
-            if (trailer.startsWith("-"))
-                return new String[] { place, trailer.substring(1) };
-
-            if (trailer.startsWith(" - "))
-                return new String[] { place, trailer.substring(3) };
-
-            if (trailer.startsWith(" "))
-                return new String[] { place, trailer.substring(1) };
-        }
-
-        final Matcher m = P_SPLIT_NAME_RMV.matcher(placeAndName);
-        if (m.matches()) {
-            final String place = m.group(1);
-            final String name = m.group(2);
-            if (name != null && !name.isEmpty())
-                return new String[]{place, name};
-        }
-
-        return new String[] { null, placeAndName };
+        return parseSpaceDelimitedPlaceAndStation(placeAndName, SPECIAL_PLACES);
     }
 
     @Override

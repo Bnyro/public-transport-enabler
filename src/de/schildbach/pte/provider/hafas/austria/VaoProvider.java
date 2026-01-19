@@ -94,33 +94,7 @@ public class VaoProvider extends AbstractHafasClientInterfaceProvider {
 
     @Override
     protected String[] splitStationName(final String placeAndName) {
-        for (final String place: SPECIAL_PLACES) {
-            if (!placeAndName.startsWith(place))
-                continue;
-
-            final int placeLength = place.length();
-            final String trailer = placeAndName.substring(placeLength);
-            if (trailer.startsWith("-"))
-                return new String[] { place, trailer.substring(1) };
-
-            if (trailer.startsWith(" - "))
-                return new String[] { place, trailer.substring(3) };
-
-            if (trailer.startsWith(" "))
-                return new String[] { place, trailer.substring(1) };
-        }
-
-        if (placeAndName.length() > 2 && !Character.isUpperCase(placeAndName.charAt(1))) {
-            final Matcher m = P_SPLIT_NAME_VAO.matcher(placeAndName);
-            if (m.matches()) {
-                final String place = m.group(1);
-                final String name = m.group(2);
-                if (name != null && !name.isEmpty())
-                    return new String[]{place, name};
-            }
-        }
-
-        return new String[] { null, placeAndName };
+        return parseSpaceDelimitedPlaceAndStation(placeAndName, SPECIAL_PLACES);
     }
 
     @Override

@@ -270,4 +270,117 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
             }
         };
     }
+
+    private static final String[] PLACE_PREFIXES = {
+            "Bad",
+            "St",
+            "St.",
+    };
+
+    protected String[] parseSpaceDelimitedPlaceAndStation(
+            final String placeAndName,
+            final String[] specialPlaces) {
+        final int posFirstComma = placeAndName.indexOf(',');
+        if (posFirstComma >= 0) {
+            // legacy comma separated
+            return new String[] {
+                    placeAndName.substring(0, posFirstComma).trim(),
+                    placeAndName.substring(posFirstComma + 1).trim()
+            };
+        }
+
+        for (final String place: specialPlaces) {
+            if (!placeAndName.startsWith(place))
+                continue;
+
+            // probably matches one of the special places
+            final int placeLength = place.length();
+            final String trailer = placeAndName.substring(placeLength);
+            if (trailer.startsWith("-"))
+                return new String[] { place, trailer.substring(1) };
+
+            if (trailer.startsWith(" - "))
+                return new String[] { place, trailer.substring(3) };
+
+            if (trailer.startsWith(" "))
+                return new String[] { place, trailer.substring(1) };
+        }
+
+        final char[] array = placeAndName.toCharArray();
+        final int length = array.length;
+        if (length <= 2 || Character.isUpperCase(array[1])) {
+            // quick check seems like all upper case
+            // then this is a railway station without explicit place name
+            return new String[] { null, placeAndName };
+        }
+
+        // now split into words separated by dots and spaces
+        boolean inPrefixArea = true;
+        boolean nextWordIsPlace = true;
+        int placeEnd = 0;
+        int wordStart = -1;
+        int wordEnd = -1;
+        int pos = 0;
+        do {
+            if (pos >= length) {
+                wordEnd = length;
+                ++pos;
+            } else {
+                final char ch = array[pos];
+                if (ch == ' ') {
+                    // word ends with space
+                    if (wordStart < 0) {
+                        ++pos;
+                        continue;
+                    }
+                    wordEnd = pos++;
+                } else if (ch == '.') {
+                    if (wordStart < 0)
+                        wordStart = pos;
+                    wordEnd = ++pos;
+                } else {
+                    if (wordStart < 0)
+                        wordStart = pos;
+                    ++pos;
+                    continue;
+                }
+            }
+            // we have a word
+            if (inPrefixArea) {
+                final String word = new String(array, wordStart, wordEnd - wordStart);
+                inPrefixArea = false;
+                for (final String placePrefix : PLACE_PREFIXES) {
+                    if (word.equals(placePrefix)) {inPrefixArea = true;
+                        break;
+                    }
+                }
+            }
+            final char firstChar = array[wordStart];
+            wordStart = -1;
+            if (inPrefixArea) {
+                // a prefix is part of place
+            } else if (Character.isLowerCase(firstChar)) {
+                // lower case, force next word as part of place
+                nextWordIsPlace = true;
+            } else if (nextWordIsPlace) {
+                // we know the word as part of place
+                nextWordIsPlace = false;
+            } else if (firstChar == '(') {
+                // word in parenthesis is part of place
+            } else {
+                // this word is part of station name
+                break;
+            }
+            placeEnd = wordEnd;
+        } while (pos <= length);
+        final String stationName = placeAndName.substring(placeEnd).trim();
+        if (stationName.isEmpty())
+            return new String[] { null, placeAndName };
+
+        final String placeName = placeAndName.substring(0, placeEnd).trim();
+        if (placeName.isEmpty())
+            return new String[] { null, placeAndName };
+
+        return new String[] { placeName, stationName };
+    }
 }
