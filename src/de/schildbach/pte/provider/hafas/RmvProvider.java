@@ -68,7 +68,8 @@ public class RmvProvider extends AbstractHafasClientInterfaceProvider {
 
     @Override
     protected String additionalJnyFltrL() {
-        return ",{\"value\": \"GROUP_PT\",\"mode\":\"INC\",\"type\":\"GROUP\"}";
+        return super.additionalJnyFltrL()
+                + ",{\"value\": \"GROUP_PT\",\"mode\":\"INC\",\"type\":\"GROUP\"}";
     }
 
     // town (place) and stop name.

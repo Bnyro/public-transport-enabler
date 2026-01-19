@@ -1124,13 +1124,19 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         final String outTime = jsonTime(c);
         final String outFrwd = Boolean.toString(dep);
         final String jnyFltr;
+        String additionalJnyFltr = additionalJnyFltrL();
+        if (bike)
+            additionalJnyFltr += ",{\"mode\":\"INC\",\"type\":\"BC\"}";
         if (products == null) {
-            jnyFltr = "";
-        } else if (apiLevel >= 40) {
-            jnyFltr = "\"jnyFltrL\":[{\"value\": " + productsInt(products) + ",\"mode\":\"INC\",\"type\":\"PROD\"}"
-                + additionalJnyFltrL() + "],";
+            jnyFltr = additionalJnyFltr.startsWith(",") ? additionalJnyFltr.substring(1) : additionalJnyFltr;
         } else {
-            jnyFltr = "\"jnyFltrL\":[{\"value\":\"" + productsString(products) + "\",\"mode\":\"BIT\",\"type\":\"PROD\"}],";
+            if (apiLevel >= 40) {
+                jnyFltr = "\"jnyFltrL\":[{\"value\": " + productsInt(products) + ",\"mode\":\"INC\",\"type\":\"PROD\"}"
+                    + additionalJnyFltr + "],";
+            } else {
+                jnyFltr = "\"jnyFltrL\":[{\"value\":\"" + productsString(products) + "\",\"mode\":\"BIT\",\"type\":\"PROD\"}"
+                    + additionalJnyFltr + "],";
+            }
         }
         final String meta = "foot_speed_" + (walkSpeed != null ? walkSpeed : WalkSpeed.NORMAL).name().toLowerCase();
         final String jsonContext = moreContext != null ? "\"ctxScr\":" + JSONObject.quote(moreContext) + "," : "";
