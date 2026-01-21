@@ -354,7 +354,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                     }
                 }
             }
-            final char firstChar = placeAndName.charAt(wordStart);
+            final char firstChar = wordStart < 0 || wordStart >= length ? 0 : placeAndName.charAt(wordStart);
             wordStart = -1;
             if (inPrefixArea) {
                 // a prefix is part of place
