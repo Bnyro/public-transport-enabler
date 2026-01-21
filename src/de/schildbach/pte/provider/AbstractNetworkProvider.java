@@ -306,9 +306,8 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                 return new String[] { place, trailer.substring(1) };
         }
 
-        final char[] array = placeAndName.toCharArray();
-        final int length = array.length;
-        if (length <= 2 || Character.isUpperCase(array[1])) {
+        final int length = placeAndName.length();
+        if (length <= 2 || Character.isUpperCase(placeAndName.charAt(1))) {
             // quick check seems like all upper case
             // then this is a railway station without explicit place name
             return new String[] { null, placeAndName };
@@ -326,7 +325,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                 wordEnd = length;
                 ++pos;
             } else {
-                final char ch = array[pos];
+                final char ch = placeAndName.charAt(pos);
                 if (ch == ' ') {
                     // word ends with space
                     if (wordStart < 0) {
@@ -347,7 +346,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
             }
             // we have a word
             if (inPrefixArea) {
-                final String word = new String(array, wordStart, wordEnd - wordStart);
+                final String word = placeAndName.substring(wordStart, wordEnd);
                 inPrefixArea = false;
                 for (final String placePrefix : PLACE_PREFIXES) {
                     if (word.equals(placePrefix)) {inPrefixArea = true;
@@ -355,7 +354,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                     }
                 }
             }
-            final char firstChar = array[wordStart];
+            final char firstChar = placeAndName.charAt(wordStart);
             wordStart = -1;
             if (inPrefixArea) {
                 // a prefix is part of place
