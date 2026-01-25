@@ -360,7 +360,7 @@ public final class Trip implements Serializable {
         protected Leg(final Location departure, final Location arrival, final List<Point> path) {
             this.departure = requireNonNull(departure);
             this.arrival = requireNonNull(arrival);
-            this.path = path;
+            this.path = path == null || path.isEmpty() ? null : path;
         }
 
         /**
