@@ -357,7 +357,7 @@ public final class Trip implements Serializable {
         public final Location arrival;
         public transient List<Point> path; // custom serialization, to save space
 
-        public Leg(final Location departure, final Location arrival, final List<Point> path) {
+        protected Leg(final Location departure, final Location arrival, final List<Point> path) {
             this.departure = requireNonNull(departure);
             this.arrival = requireNonNull(arrival);
             this.path = path;
@@ -385,7 +385,7 @@ public final class Trip implements Serializable {
 
         private void writeObject(final ObjectOutputStream os) throws IOException {
             os.defaultWriteObject();
-            if (path != null) {
+            if (path != null && !path.isEmpty()) {
                 os.writeInt(path.size());
                 for (final Point p : path) {
                     os.writeInt(p.getLatAs1E6());
@@ -400,7 +400,7 @@ public final class Trip implements Serializable {
             is.defaultReadObject();
             try {
                 final int pathSize = is.readInt();
-                if (pathSize >= 0) {
+                if (pathSize > 0) {
                     path = new ArrayList<>(pathSize);
                     for (int i = 0; i < pathSize; i++)
                         path.add(Point.from1E6(is.readInt(), is.readInt()));
@@ -429,7 +429,8 @@ public final class Trip implements Serializable {
         public @Nullable Location exitLocation;
 
         public Public(
-                final Line line, final Location destination, final Stop departureStop, final Stop arrivalStop,
+                final Line line, final Location destination,
+                final Stop departureStop, final Stop arrivalStop,
                 final List<Stop> intermediateStops, final List<Point> path, final String message,
                 final JourneyRef journeyRef, final Date loadedAt) {
             super(departureStop.location, arrivalStop.location, path);

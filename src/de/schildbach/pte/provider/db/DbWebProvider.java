@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
+import de.schildbach.oeffi.util.GeoUtils;
 import de.schildbach.pte.NetworkId;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Fare;
@@ -641,6 +642,41 @@ public abstract class DbWebProvider extends DbProvider {
         return null;
     }
 
+    private Point parseCoordinate(final JSONObject coord) throws JSONException {
+        return Point.fromDouble(coord.getDouble("lat"), coord.getDouble("lng"));
+    }
+
+    private List<Point> parsePolylineGroup(final JSONObject journey) throws JSONException {
+        final JSONObject polylineGroup = journey.optJSONObject("polylineGroup");
+        if (polylineGroup == null)
+            return null;
+        final JSONArray polylineDescriptions = polylineGroup.getJSONArray("polylineDescriptions");
+        final int numDescriptions = polylineDescriptions.length();
+        if (numDescriptions == 0)
+            return null;
+        // first, find the polylineDescription with the greatest distance
+        // note that sometime there are 2 or 3 descriptions and those at the beginning or end
+        // look like walks inside the stations.
+        double maxDistance = Double.MIN_VALUE;
+        JSONArray longestCoordinates = null;
+        for (int nGroup = 0; nGroup < numDescriptions; ++nGroup) {
+            final JSONObject description = polylineDescriptions.getJSONObject(nGroup);
+            final JSONArray coordinates = description.getJSONArray("coordinates");
+            final Point firstPoint = parseCoordinate(coordinates.getJSONObject(0));
+            final Point lastPoint = parseCoordinate(coordinates.getJSONObject(coordinates.length() - 1));
+            final float distance = GeoUtils.distanceBetween(firstPoint, lastPoint).distanceInMeters;
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                longestCoordinates = coordinates;
+            }
+        }
+        final List<Point> path = new ArrayList<>();
+        for (int nCoord = 0; nCoord < longestCoordinates.length(); ++nCoord) {
+            path.add(parseCoordinate(longestCoordinates.getJSONObject(nCoord)));
+        }
+        return path;
+    }
+
     private Trip.Public parseJourney(final JSONObject journey, final DbJourneyRef journeyRef) throws JSONException {
         Stop departureStop = null;
         Stop arrivalStop = null;
@@ -657,11 +693,12 @@ public abstract class DbWebProvider extends DbProvider {
         final String message = parseJourneyMessages(
                 journey, journey.optJSONArray("zugattribute"), journeyRef.line.network,
                 defaultTeilstreckenHinweis);
+        final List<Point> path = parsePolylineGroup(journey);
         return new Trip.Public(
                 journeyRef.line,
                 arrivalStop.location,
                 departureStop, arrivalStop, intermediateStops,
-                null,
+                path,
                 message,
                 new DbJourneyRef(journeyRef.journeyId, null, journeyRef.line));
     }
