@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
-import de.schildbach.oeffi.util.GeoUtils;
 import de.schildbach.pte.NetworkId;
 import de.schildbach.pte.dto.Departure;
 import de.schildbach.pte.dto.Fare;
@@ -82,6 +81,7 @@ import de.schildbach.pte.exception.BlockedException;
 import de.schildbach.pte.exception.InternalErrorException;
 import de.schildbach.pte.exception.ParserException;
 import de.schildbach.pte.provider.TransferEvaluationProvider;
+import de.schildbach.pte.util.GeoUtils;
 import de.schildbach.pte.util.ParserUtils;
 import okhttp3.HttpUrl;
 
@@ -685,7 +685,7 @@ public abstract class DbMovasProvider extends DbProvider {
             final JSONArray coordinates = description.getJSONArray("coordinates");
             final Point firstPoint = parseCoordinate(coordinates.getJSONObject(0));
             final Point lastPoint = parseCoordinate(coordinates.getJSONObject(coordinates.length() - 1));
-            final float distance = GeoUtils.distanceBetween(firstPoint, lastPoint).distanceInMeters;
+            final double distance = GeoUtils.geoDistanceInMeters(firstPoint, lastPoint);
             if (distance > maxDistance) {
                 maxDistance = distance;
                 longestCoordinates = coordinates;
