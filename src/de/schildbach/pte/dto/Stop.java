@@ -18,18 +18,12 @@
 package de.schildbach.pte.dto;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
 
 import static java.util.Objects.requireNonNull;
-
-import static de.schildbach.pte.util.GeoUtils.findClosestPointOnTrack;
-
-import de.schildbach.pte.util.GeoUtils;
 
 /**
  * @author Andreas Schildbach
@@ -48,9 +42,6 @@ public final class Stop implements Serializable {
     public final @Nullable Position plannedDeparturePosition;
     public final @Nullable Position predictedDeparturePosition;
     public final boolean departureCancelled;
-
-    private WeakReference<Trip.Public> publicLegRef;
-    private GeoUtils.PointAndDistance legPathPoint;
 
     public Stop(final Location location, final PTDate plannedArrivalTime, final PTDate predictedArrivalTime,
                 final Position plannedArrivalPosition, final Position predictedArrivalPosition,
@@ -112,23 +103,6 @@ public final class Stop implements Serializable {
         this.plannedDeparturePosition = plannedDeparturePosition;
         this.predictedDeparturePosition = null;
         this.departureCancelled = false;
-    }
-
-    public GeoUtils.PointAndDistance getClosestLegPathPoint(
-            final Trip.Public publicLeg,
-            final Stop previousStop) {
-        if (publicLegRef == null || publicLegRef.get() != publicLeg) {
-            publicLegRef = new WeakReference<>(publicLeg);
-            final List<Point> points = publicLeg.path;
-            if (points != null && !points.isEmpty()) {
-                final int currentIndex = previousStop == null ? 0
-                        : previousStop.legPathPoint == null ? 0
-                        : previousStop.legPathPoint.pointAfterIndex;
-                legPathPoint = findClosestPointOnTrack(location.coord, points, currentIndex, -1);
-            }
-        }
-
-        return legPathPoint;
     }
 
     public PTDate getArrivalTime() {

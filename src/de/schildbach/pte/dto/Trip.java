@@ -475,16 +475,6 @@ public final class Trip implements Serializable {
             }
         }
 
-        public void setupClosestPointOnStops() {
-            if (intermediateStops != null) {
-                Stop previousStop = departureStop;
-                for (final Stop stop : intermediateStops) {
-                    stop.getClosestLegPathPoint(this, previousStop);
-                    previousStop = stop;
-                }
-            }
-        }
-
         public Stop findStopByLocation(final Location location) {
             String locId = location.id;
             if (locId.equals(departure.id))
