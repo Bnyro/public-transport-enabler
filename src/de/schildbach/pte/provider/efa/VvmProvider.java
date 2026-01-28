@@ -90,18 +90,23 @@ public class VvmProvider extends AbstractEfaProvider {
     }
 
     @Override
-    public QueryJourneyResult queryJourney(JourneyRef aJourneyRef) throws IOException {
-        return queryJourneyMobile((EfaJourneyRef) aJourneyRef);
+    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef, final boolean loadPath) throws IOException {
+        return queryJourneyMobile((EfaJourneyRef) aJourneyRef, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
-                                       final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
-        return queryTripsMobile(from, via, to, date, dep, options);
+    public QueryTripsResult queryTrips(
+            final Location from, final @Nullable Location via, final Location to,
+            final Date date, final boolean dep,
+            final @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
+        return queryTripsMobile(from, via, to, date, dep, options, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext contextObj, final boolean later) throws IOException {
-        return queryMoreTripsMobile(contextObj, later);
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext contextObj, final boolean later,
+            final boolean loadPath) throws IOException {
+        return queryMoreTripsMobile(contextObj, later, loadPath);
     }
 }

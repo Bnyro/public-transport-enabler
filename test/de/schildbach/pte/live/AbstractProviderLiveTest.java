@@ -118,14 +118,15 @@ public abstract class AbstractProviderLiveTest {
         return provider.suggestLocations(constraint, null, 0);
     }
 
-    protected final QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
+    protected final QueryTripsResult queryTrips(
+            final Location from, final @Nullable Location via, final Location to,
             final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
-        return provider.queryTrips(from, via, to, date, dep, options);
+        return provider.queryTrips(from, via, to, date, dep, options, false);
     }
 
-    protected final QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later)
-            throws IOException {
-        return provider.queryMoreTrips(context, later);
+    protected final QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later) throws IOException {
+        return provider.queryMoreTrips(context, later, false);
     }
 
     protected final static String secretProperty(final String key) {

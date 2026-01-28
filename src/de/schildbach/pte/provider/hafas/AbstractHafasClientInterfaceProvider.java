@@ -269,28 +269,35 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     }
 
     @Override
-    public QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
-            final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
+    public QueryTripsResult queryTrips(
+            final Location from, final @Nullable Location via, final Location to,
+            final Date date, final boolean dep, final @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
         final Set<TripFlag> tripFlags = options == null ? null : options.flags;
         return jsonTripSearch(from, via, to, date, dep,
                 tripFlags != null && tripFlags.contains(TripFlag.DIRECT),
                 tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options != null ? options.products : null,
                 options != null ? options.walkSpeed : null,
-                null);
+                null,
+                loadPath);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
         final JsonContext jsonContext = (JsonContext) context;
         return jsonTripSearch(jsonContext.from, jsonContext.via, jsonContext.to, jsonContext.date, jsonContext.dep,
                 jsonContext.direct, jsonContext.bike,
-                jsonContext.products, jsonContext.walkSpeed, later ? jsonContext.laterContext : jsonContext.earlierContext);
+                jsonContext.products, jsonContext.walkSpeed,
+                later ? jsonContext.laterContext : jsonContext.earlierContext,
+                loadPath);
     }
 
     @Override
-    public QueryTripsResult queryReloadTrip(final TripRef tripRef) throws IOException {
-        return jsonTripReload((HafasTripRef) tripRef);
+    public QueryTripsResult queryReloadTrip(final TripRef tripRef, final boolean loadPath) throws IOException {
+        return jsonTripReload((HafasTripRef) tripRef, loadPath);
     }
 
     public static class HafasTripRef extends TripRef {
@@ -356,8 +363,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     }
 
     @Override
-    public QueryJourneyResult queryJourney(JourneyRef journeyRef) throws IOException {
-        return jsonJourney((HafasJourneyRef) journeyRef);
+    public QueryJourneyResult queryJourney(JourneyRef journeyRef, final boolean loadPath) throws IOException {
+        return jsonJourney((HafasJourneyRef) journeyRef, loadPath);
     }
 
     protected final NearbyLocationsResult jsonLocGeoPos(
@@ -806,8 +813,10 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         final String message = buildMessageFromRemarks(jny, remarks, hims);
 
         final String jid = jny.optString("jid", null);
-        return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, path,
+        final Trip.Public newTrip = new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops,
                 message, jid == null ? null : new HafasJourneyRef(jid));
+        newTrip.setPath(path);
+        return newTrip;
     }
 
     protected final QueryTripsResult jsonTripRequest(
@@ -939,26 +948,26 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                         } else {
                             leg = new Trip.Individual(Trip.Individual.Type.WALK, departureStop.location,
                                     departureStop.getDepartureTime(), arrivalStop.location, arrivalStop.getArrivalTime(),
-                                    null, distance);
+                                    distance);
                         }
                     } else if (SECTION_TYPE_TRANSFER.equals(secType) || SECTION_TYPE_DEVI.equals(secType)) {
                         final JSONObject gis = sec.optJSONObject("gis");
                         final int distance = gis != null ? gis.optInt("dist", 0) : 0;
                         leg = new Trip.Individual(Trip.Individual.Type.TRANSFER, departureStop.location,
                                 departureStop.getDepartureTime(), arrivalStop.location, arrivalStop.getArrivalTime(),
-                                null, distance);
+                                distance);
                     } else if (SECTION_TYPE_CHECK_IN.equals(secType)) {
                         final JSONObject gis = sec.optJSONObject("gis");
                         final int distance = gis != null ? gis.optInt("dist", 0) : 0;
                         leg = new Trip.Individual(Trip.Individual.Type.CHECK_IN, departureStop.location,
                                 departureStop.getDepartureTime(), arrivalStop.location, arrivalStop.getArrivalTime(),
-                                null, distance);
+                                distance);
                     } else if (SECTION_TYPE_CHECK_OUT.equals(secType)) {
                         final JSONObject gis = sec.optJSONObject("gis");
                         final int distance = gis != null ? gis.optInt("dist", 0) : 0;
                         leg = new Trip.Individual(Trip.Individual.Type.CHECK_OUT, departureStop.location,
                                 departureStop.getDepartureTime(), arrivalStop.location, arrivalStop.getArrivalTime(),
-                                null, distance);
+                                distance);
                     } else {
                         throw new IllegalStateException("cannot handle type: " + secType);
                     }
@@ -1103,7 +1112,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final boolean direct,
             final boolean bike,
             final @Nullable Set<Product> products, final @Nullable WalkSpeed walkSpeed,
-            final @Nullable String moreContext) throws IOException {
+            final @Nullable String moreContext,
+            final boolean loadPath) throws IOException {
         from = jsonTripSearchIdentify(from);
         if (from == null)
             return new QueryTripsResult(new ResultHeader(network, SERVER_PRODUCT),
@@ -1151,7 +1161,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 + jnyFltr
                 + "\"gisFltrL\":[{\"mode\":\"FB\",\"profile\":{\"type\":\"F\",\"linDistRouting\":false,\"maxdist\":2000},\"type\":\"M\",\"meta\":\""
                 + meta + "\"}]," //
-                + "\"getPolyline\":true,\"getPasslist\":true," //
+                + "\"getPolyline\":" + (loadPath ? "true" : "false") + ",\"getPasslist\":true," //
                 + (apiLevel <= 24 ? "\"getConGroups\":false," : "") //
                 + (direct ? "\"maxChg\":0," : "") //
                 + "\"getIST\":false,\"getEco\":false,\"minChgTime\":-1,\"extChgTime\":-1}", //
@@ -1160,22 +1170,24 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return jsonTripRequest("TripSearch", request, from, via, to, time, dep, direct, bike, products, walkSpeed);
     }
 
-    private QueryTripsResult jsonTripReload(final HafasTripRef tripRef) throws IOException {
+    private QueryTripsResult jsonTripReload(final HafasTripRef tripRef, final boolean loadPath) throws IOException {
         final String request = wrapJsonApiRequest("Reconstruction", "{" //
                         + ((apiLevel >= 40) //
                             ? "\"outReconL\":[{\"ctx\":\"" + tripRef.ctxRecon + "\"}]," //
                             : "\"ctxRecon\":\"" + tripRef.ctxRecon + "\",") //
-                        + "\"getPolyline\":true,\"getPasslist\":true,\"getIST\":false}", //
+                        + "\"getPolyline\":" + (loadPath ? "true" : "false") + ",\"getPasslist\":true,\"getIST\":false}", //
                 false);
 
         return jsonTripRequest("Reconstruction", request, tripRef.from, tripRef.via, tripRef.to,
                 new Date(), true, false, false, null, null);
     }
 
-    private QueryJourneyResult jsonJourney(HafasJourneyRef journeyRef) throws IOException {
+    private QueryJourneyResult jsonJourney(
+            final HafasJourneyRef journeyRef,
+            final boolean loadPath) throws IOException {
         final String request = wrapJsonApiRequest("JourneyDetails", "{" //
                         + "\"jid\":\"" + journeyRef.jid + "\"," //
-                        + "\"getPasslist\":true,\"getPolyline\":true}", //
+                        + "\"getPasslist\":true,\"getPolyline\":" + (loadPath ? "true" : "false") + "}", //
                 false);
 
         final HttpUrl url = requestUrl(request);

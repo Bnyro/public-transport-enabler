@@ -181,13 +181,17 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
      *         trips
      * @throws IOException
      */
-    QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
-            @Nullable TripOptions options) throws IOException;
+    QueryTripsResult queryTrips(
+            Location from, @Nullable Location via, Location to, Date date, boolean dep,
+            @Nullable TripOptions options,
+            boolean loadPath) throws IOException;
 
     @Deprecated
-    QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
+    QueryTripsResult queryTrips(
+            Location from, @Nullable Location via, Location to, Date date, boolean dep,
             @Nullable Set<Product> products, @Nullable Optimize optimize, @Nullable WalkSpeed walkSpeed,
-            @Nullable Accessibility accessibility, @Nullable Set<TripFlag> flags) throws IOException;
+            @Nullable Accessibility accessibility, @Nullable Set<TripFlag> flags,
+            boolean loadPath) throws IOException;
 
     /**
      * Query more trips (e.g. earlier or later)
@@ -199,11 +203,11 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
      * @return result object that contains possible trips
      * @throws IOException
      */
-    QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later) throws IOException;
+    QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later, boolean loadPath) throws IOException;
 
-    QueryTripsResult queryReloadTrip(final TripRef tripRef) throws IOException;
+    QueryTripsResult queryReloadTrip(final TripRef tripRef, boolean loadPath) throws IOException;
 
-    QueryJourneyResult queryJourney(final JourneyRef journeyRef) throws IOException;
+    QueryJourneyResult queryJourney(final JourneyRef journeyRef, boolean loadPath) throws IOException;
 
     /**
      * Get style of line
@@ -241,7 +245,7 @@ public interface NetworkProvider extends Provider, LocationSearchProvider {
 
     TripShare shareTrip(final Trip trip) throws IOException;
 
-    QueryTripsResult loadSharedTrip(final TripShare tripShare) throws IOException;
+    QueryTripsResult loadSharedTrip(final TripShare tripShare, final boolean loadPath) throws IOException;
 
     TripRef createTripRefFromPreviousTripWithNewLegs(final Trip trip, final List<Trip.Leg> newLegs);
 

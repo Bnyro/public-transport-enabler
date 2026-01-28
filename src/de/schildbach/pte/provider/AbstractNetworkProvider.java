@@ -79,26 +79,29 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
 
     protected abstract Set<Capability> getCapabilities();
 
-    protected boolean hasCapability(Capability capability) {
+    protected boolean hasCapability(final Capability capability) {
         return getCapabilities().contains(capability);
     }
 
     @Deprecated
     @Override
-    public QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
-            @Nullable Set<Product> products, @Nullable Optimize optimize, @Nullable WalkSpeed walkSpeed,
-            @Nullable Accessibility accessibility, @Nullable Set<TripFlag> flags) throws IOException {
-        return queryTrips(from, via, to, date, dep,
-                new TripOptions(products, optimize, walkSpeed, null, accessibility, flags));
+    public QueryTripsResult queryTrips(
+            final Location from, @Nullable final Location via, final Location to, final Date date, final boolean dep,
+            @Nullable final Set<Product> products, @Nullable final Optimize optimize, @Nullable final WalkSpeed walkSpeed,
+            @Nullable final Accessibility accessibility, @Nullable final Set<TripFlag> flags, final boolean loadPath) throws IOException {
+        return queryTrips(
+                from, via, to, date, dep,
+                new TripOptions(products, optimize, walkSpeed, null, accessibility, flags),
+                loadPath);
     }
 
     @Override
-    public QueryTripsResult queryReloadTrip(final TripRef tripRef) throws IOException {
+    public QueryTripsResult queryReloadTrip(final TripRef tripRef, final boolean loadPath) throws IOException {
         throw new UnsupportedOperationException("queryReloadTrip(\"" + tripRef + "\")");
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef journeyRef) throws IOException {
+    public QueryJourneyResult queryJourney(final JourneyRef journeyRef, final boolean loadPath) throws IOException {
         throw new UnsupportedOperationException("queryJourney(\"" + journeyRef + "\")");
     }
 
@@ -213,7 +216,8 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
     }
 
     @Override
-    public QueryTripsResult loadSharedTrip(final TripShare tripShare) throws IOException {
+    public QueryTripsResult loadSharedTrip(
+            final TripShare tripShare, final boolean loadPath) throws IOException {
         throw new UnsupportedOperationException("loadSharedTrip");
     }
 

@@ -57,8 +57,8 @@ public class BsvagProvider extends AbstractEfaProvider {
     @Override
     protected void appendTripRequestParameters(final HttpUrl.Builder url, final Location from,
             final @Nullable Location via, final Location to, final Date time, final boolean dep,
-            final @Nullable TripOptions options) {
-        super.appendTripRequestParameters(url, from, via, to, time, dep, options);
+            final @Nullable TripOptions options, final boolean loadPath) {
+        super.appendTripRequestParameters(url, from, via, to, time, dep, options, loadPath);
         url.addEncodedQueryParameter("inclMOT_11", "on");
     }
 

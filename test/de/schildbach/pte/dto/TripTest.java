@@ -63,15 +63,14 @@ public class TripTest {
             // only Individual
             for (int i = 0; i < changes + 1; i++) {
                 legs.add(
-                        new Trip.Individual(Trip.Individual.Type.BIKE, from, PTDate.withNetworkOffset(42), to, PTDate.withNetworkOffset(43), null, 42));
+                        new Trip.Individual(Trip.Individual.Type.BIKE, from, PTDate.withNetworkOffset(42), to, PTDate.withNetworkOffset(43), 42));
             }
             break;
         case 2:
             // mixed
             for (int i = 0; i < changes + 1; i++) {
                 if ((i % 2) == 0) {
-                    legs.add(new Trip.Individual(Trip.Individual.Type.BIKE, from, PTDate.withNetworkOffset(42), to, PTDate.withNetworkOffset(43), null,
-                            42));
+                    legs.add(new Trip.Individual(Trip.Individual.Type.BIKE, from, PTDate.withNetworkOffset(42), to, PTDate.withNetworkOffset(43), 42));
                 } else {
                     legs.add(new Trip.Public(dummyLine, null, departureStop, arrivalStop, null, null, null));
                 }

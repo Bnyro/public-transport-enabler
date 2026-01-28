@@ -355,12 +355,22 @@ public final class Trip implements Serializable {
 
         public final Location departure;
         public final Location arrival;
-        public transient List<Point> path; // custom serialization, to save space
+        private transient List<Point> path; // custom serialization, to save space
 
-        protected Leg(final Location departure, final Location arrival, final List<Point> path) {
+        protected Leg(final Location departure, final Location arrival) {
             this.departure = requireNonNull(departure);
             this.arrival = requireNonNull(arrival);
-            this.path = path == null || path.isEmpty() ? null : path;
+        }
+
+        public void setPath(final List<Point> path) {
+            if (path == null || path.isEmpty())
+                this.path = null;
+            else
+                this.path = path;
+        }
+
+        public List<Point> getPath() {
+            return path;
         }
 
         /**
@@ -431,9 +441,9 @@ public final class Trip implements Serializable {
         public Public(
                 final Line line, final Location destination,
                 final Stop departureStop, final Stop arrivalStop,
-                final List<Stop> intermediateStops, final List<Point> path, final String message,
+                final List<Stop> intermediateStops, final String message,
                 final JourneyRef journeyRef, final Date loadedAt) {
-            super(departureStop.location, arrivalStop.location, path);
+            super(departureStop.location, arrivalStop.location);
 
             this.loadedAt = loadedAt;
             this.line = requireNonNull(line);
@@ -450,14 +460,14 @@ public final class Trip implements Serializable {
 
         public Public(
                 final Line line, final Location destination, final Stop departureStop, final Stop arrivalStop,
-                final List<Stop> intermediateStops, final List<Point> path, final String message, final JourneyRef journeyRef) {
-            this(line, destination, departureStop, arrivalStop, intermediateStops, path, message, journeyRef, new Date());
+                final List<Stop> intermediateStops, final String message, final JourneyRef journeyRef) {
+            this(line, destination, departureStop, arrivalStop, intermediateStops, message, journeyRef, new Date());
         }
 
         public Public(
                 final Line line, final Location destination, final Stop departureStop, final Stop arrivalStop,
-                final List<Stop> intermediateStops, final List<Point> path, final String message) {
-            this(line, destination, departureStop, arrivalStop, intermediateStops, path, message, null);
+                final List<Stop> intermediateStops, final String message) {
+            this(line, destination, departureStop, arrivalStop, intermediateStops, message, null);
         }
 
         public void setEntryAndExit(final Location entryLocation, final Location exitLocation) {
@@ -635,9 +645,12 @@ public final class Trip implements Serializable {
         public final int min;
         public final int distance;
 
-        public Individual(final Type type, final Location departure, final PTDate departureTime, final Location arrival,
-                          final PTDate arrivalTime, final List<Point> path, final int distance) {
-            super(departure, arrival, path);
+        public Individual(
+                final Type type,
+                final Location departure, final PTDate departureTime,
+                final Location arrival, final PTDate arrivalTime,
+                final int distance) {
+            super(departure, arrival);
 
             this.type = requireNonNull(type);
             this.departureTime = requireNonNull(departureTime);
@@ -650,7 +663,7 @@ public final class Trip implements Serializable {
             final PTDate arrivalTime = new PTDate(
                     new Date(departureTime.getTime() + this.arrivalTime.getTime() - this.departureTime.getTime()),
                     departureTime.getOffset());
-            return new Trip.Individual(this.type, this.departure, departureTime, this.arrival, arrivalTime, this.path,
+            return new Trip.Individual(this.type, this.departure, departureTime, this.arrival, arrivalTime,
                     this.distance);
         }
 

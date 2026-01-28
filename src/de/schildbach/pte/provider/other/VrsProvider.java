@@ -653,7 +653,7 @@ public class VrsProvider extends AbstractNetworkProvider {
     @Override
     public QueryTripsResult queryTrips(
             final Location from, final @Nullable Location via, final Location to, final Date date,
-            final boolean dep, @Nullable TripOptions options) throws IOException {
+            final boolean dep, @Nullable TripOptions options, final boolean loadPath) throws IOException {
         // The EXACT_POINTS feature generates an about 50% bigger API response, probably well compressible.
         final boolean EXACT_POINTS = true;
         final List<Location> ambiguousFrom = new ArrayList<>();
@@ -877,16 +877,20 @@ public class VrsProvider extends AbstractNetworkProvider {
                         //    arrivalPlanned = walkArrival;
                         arrivalPlanned = walkArrival;
 
-                        legs.add(new Trip.Individual(Trip.Individual.Type.WALK, segmentOrigin, departurePlanned,
-                                segmentDestination, arrivalPlanned, points, (int) distance));
+                        final Trip.Individual newLeg = new Trip.Individual(Trip.Individual.Type.WALK, segmentOrigin, departurePlanned,
+                                segmentDestination, arrivalPlanned, (int) distance);
+                        newLeg.setPath(points);
+                        legs.add(newLeg);
                     } else if (type.equals("publicTransport")) {
-                        legs.add(new Trip.Public(line, direction != null
+                        final Trip.Public newLeg = new Trip.Public(line, direction != null
                                 ? new Location(LocationType.ANY, null /* id */, null /* place */, direction) : null,
                                 new Stop(segmentOrigin, true /* departure */, departurePlanned, departurePredicted,
                                         segmentOriginPosition, segmentOriginPosition),
                                 new Stop(segmentDestination, false /* departure */, arrivalPlanned, arrivalPredicted,
                                         segmentDestinationPosition, segmentDestinationPosition),
-                                intermediateStops, points, message.length() > 0 ? message.toString() : null));
+                                intermediateStops, message.length() > 0 ? message.toString() : null);
+                        newLeg.setPath(points);
+                        legs.add(newLeg);
                     } else {
                         throw new IllegalStateException("unhandled type: " + type);
                     }
@@ -953,13 +957,15 @@ public class VrsProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
         final Context ctx = (Context) context;
         final TripOptions options = new TripOptions(ctx.products, null, null, null, null, null);
         if (later) {
-            return queryTrips(ctx.from, ctx.via, ctx.to, ctx.getLastDeparture(), true, options);
+            return queryTrips(ctx.from, ctx.via, ctx.to, ctx.getLastDeparture(), true, options, loadPath);
         } else {
-            return queryTrips(ctx.from, ctx.via, ctx.to, ctx.getFirstArrival(), false, options);
+            return queryTrips(ctx.from, ctx.via, ctx.to, ctx.getFirstArrival(), false, options, loadPath);
         }
     }
 

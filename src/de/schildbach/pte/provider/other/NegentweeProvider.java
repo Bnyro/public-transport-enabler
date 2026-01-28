@@ -432,68 +432,74 @@ public class NegentweeProvider extends AbstractNetworkProvider {
             foundPoints.add(lastStop.location.coord);
 
             switch (leg.getString("type").toLowerCase()) {
-            case "scheduled":
-                Product lineProduct = productFromMode(mode.getString("type"), mode.getString("name"));
+                case "scheduled": {
+                    Product lineProduct = productFromMode(mode.getString("type"), mode.getString("name"));
 
-                StringBuilder legMessage = new StringBuilder();
+                    StringBuilder legMessage = new StringBuilder();
 
-                // Add attributes to leg message
-                JSONArray legAttributes = leg.getJSONArray("attributes");
-                for (int k = 0; k < legAttributes.length(); k++) {
-                    JSONObject legAttribute = legAttributes.getJSONObject(k);
+                    // Add attributes to leg message
+                    JSONArray legAttributes = leg.getJSONArray("attributes");
+                    for (int k = 0; k < legAttributes.length(); k++) {
+                        JSONObject legAttribute = legAttributes.getJSONObject(k);
 
-                    if (legMessage.length() > 0)
-                        legMessage.append(", ");
-                    legMessage.append(WordUtils.capitalizeFirst(legAttribute.getString("title")));
-                }
+                        if (legMessage.length() > 0)
+                            legMessage.append(", ");
+                        legMessage.append(WordUtils.capitalizeFirst(legAttribute.getString("title")));
+                    }
 
-                // Add disturbances to leg message
-                if (disturbances != null) {
-                    JSONArray legDisturbances = leg.getJSONArray("disturbancePlannerIds");
-                    for (int k = 0; k < legDisturbances.length(); k++) {
-                        String legDisturbanceId = legDisturbances.optString(k);
+                    // Add disturbances to leg message
+                    if (disturbances != null) {
+                        JSONArray legDisturbances = leg.getJSONArray("disturbancePlannerIds");
+                        for (int k = 0; k < legDisturbances.length(); k++) {
+                            String legDisturbanceId = legDisturbances.optString(k);
 
-                        if (legDisturbanceId != null && disturbances.containsKey(legDisturbanceId)) {
-                            JSONObject legDisturbance = disturbances.get(legDisturbanceId);
+                            if (legDisturbanceId != null && disturbances.containsKey(legDisturbanceId)) {
+                                JSONObject legDisturbance = disturbances.get(legDisturbanceId);
 
-                            if (legMessage.length() > 0)
-                                legMessage.append("<br>\n<br>\n");
-                            legMessage.append(legDisturbance.getString("title"));
-                            legMessage.append(":<br>\n");
-                            legMessage.append(legDisturbance.getString("effect"));
-                            legMessage.append(" ");
-                            legMessage.append(legDisturbance.getString("measure"));
+                                if (legMessage.length() > 0)
+                                    legMessage.append("<br>\n<br>\n");
+                                legMessage.append(legDisturbance.getString("title"));
+                                legMessage.append(":<br>\n");
+                                legMessage.append(legDisturbance.getString("effect"));
+                                legMessage.append(" ");
+                                legMessage.append(legDisturbance.getString("measure"));
+                            }
                         }
                     }
+
+                    StringBuilder lineName = new StringBuilder();
+                    lineName.append(mode.getString("name"));
+
+                    // Service codes have no relevant meaning for trains
+                    if (!leg.isNull("service") && !trainProducts.contains(lineProduct)) {
+                        lineName.append(" ");
+                        lineName.append(leg.getString("service"));
+                    }
+
+                    final Trip.Public newLeg = new Trip.Public(
+                            new Line(leg.getString("service"), (operator != null) ? operator.getString("name") : null,
+                                    lineProduct, lineName.toString(), leg.optString("service"),
+                                    Standard.STYLES.get(lineProduct), null, null),
+                            new Location(LocationType.STATION, null, null, leg.getString("destination")), firstStop,
+                            lastStop, foundStops, legMessage.length() > 0 ? legMessage.toString() : null);
+                    newLeg.setPath(foundPoints);
+                    foundLegs.add(newLeg);
+                    break;
                 }
+                case "continuous": {
+                    // Get leg time from trip or previous leg
+                    PTDate legDeparture = (i == 0) ? tripDeparture : foundLegs.getLast().getArrivalTime();
+                    PTDate legArrival = ParserUtils.addMinutes(legDeparture,
+                            ParserUtils.parseMinutesFromTimeString(leg.getString("duration")));
 
-                StringBuilder lineName = new StringBuilder();
-                lineName.append(mode.getString("name"));
-
-                // Service codes have no relevant meaning for trains
-                if (!leg.isNull("service") && !trainProducts.contains(lineProduct)) {
-                    lineName.append(" ");
-                    lineName.append(leg.getString("service"));
+                    final Trip.Individual newLeg = new Trip.Individual(Trip.Individual.Type.WALK, firstStop.location, legDeparture,
+                            lastStop.location, legArrival, -1);
+                    newLeg.setPath(foundPoints);
+                    foundLegs.add(newLeg);
+                    break;
                 }
-
-                foundLegs.add(new Trip.Public(
-                        new Line(leg.getString("service"), (operator != null) ? operator.getString("name") : null,
-                                lineProduct, lineName.toString(), leg.optString("service"),
-                                Standard.STYLES.get(lineProduct), null, null),
-                        new Location(LocationType.STATION, null, null, leg.getString("destination")), firstStop,
-                        lastStop, foundStops, foundPoints, legMessage.length() > 0 ? legMessage.toString() : null));
-                break;
-            case "continuous":
-                // Get leg time from trip or previous leg
-                PTDate legDeparture = (i == 0) ? tripDeparture : foundLegs.getLast().getArrivalTime();
-                PTDate legArrival = ParserUtils.addMinutes(legDeparture,
-                        ParserUtils.parseMinutesFromTimeString(leg.getString("duration")));
-
-                foundLegs.add(new Trip.Individual(Trip.Individual.Type.WALK, firstStop.location, legDeparture,
-                        lastStop.location, legArrival, foundPoints, -1));
-                break;
-            default:
-                throw new JSONException("Unknown leg type: " + leg.getString("type"));
+                default:
+                    throw new JSONException("Unknown leg type: " + leg.getString("type"));
             }
         }
 
@@ -885,8 +891,10 @@ public class NegentweeProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep,
-            @Nullable TripOptions options) throws IOException {
+    public QueryTripsResult queryTrips(
+            final Location from, @Nullable final Location via, final Location to,
+            final Date date, final boolean dep,
+            @Nullable TripOptions options, final boolean loadPath) throws IOException {
         if (!(from.hasId() || from.hasCoord()))
             return ambiguousQueryTrips(from, via, to);
 
@@ -894,7 +902,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
             return ambiguousQueryTrips(from, via, to);
 
         // Default query options
-        List<QueryParameter> queryParameters = new ArrayList<>(
+        final List<QueryParameter> queryParameters = new ArrayList<>(
                 Arrays.asList(new QueryParameter("from", locationToQueryParameterString(from)),
                         new QueryParameter("to", locationToQueryParameterString(to)),
                         new QueryParameter("searchType", dep ? "departure" : "arrival"),
@@ -935,10 +943,12 @@ public class NegentweeProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later) throws IOException {
-        TripsContext tripContext = (TripsContext) context;
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
+        final TripsContext tripContext = (TripsContext) context;
 
-        HttpUrl url;
+        final HttpUrl url;
         if (later && context.canQueryLater()) {
             url = tripContext.getQueryLater();
         } else if (!later && context.canQueryEarlier()) {

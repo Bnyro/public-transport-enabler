@@ -68,10 +68,11 @@ public class SydneyProvider extends AbstractEfaProvider {
     }
 
     @Override
-    protected void appendTripRequestParameters(final HttpUrl.Builder url, final Location from,
+    protected void appendTripRequestParameters(
+            final HttpUrl.Builder url, final Location from,
             final @Nullable Location via, final Location to, final Date time, final boolean dep,
-            final @Nullable TripOptions options) {
-        super.appendTripRequestParameters(url, from, via, to, time, dep, options);
+            final @Nullable TripOptions options, final boolean loadPath) {
+        super.appendTripRequestParameters(url, from, via, to, time, dep, options, loadPath);
         if (options != null && options.products != null) {
             for (final Product p : options.products) {
                 if (p == Product.BUS)
@@ -82,8 +83,8 @@ public class SydneyProvider extends AbstractEfaProvider {
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef) throws IOException {
-        return queryJourneyMobile((EfaJourneyRef) aJourneyRef);
+    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef, final boolean loadPath) throws IOException {
+        return queryJourneyMobile((EfaJourneyRef) aJourneyRef, loadPath);
     }
 
     @Override

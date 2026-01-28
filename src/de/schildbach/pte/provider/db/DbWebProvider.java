@@ -694,13 +694,14 @@ public abstract class DbWebProvider extends DbProvider {
                 journey, journey.optJSONArray("zugattribute"), journeyRef.line.network,
                 defaultTeilstreckenHinweis);
         final List<Point> path = parsePolylineGroup(journey);
-        return new Trip.Public(
+        final Trip.Public leg = new Trip.Public(
                 journeyRef.line,
                 arrivalStop.location,
                 departureStop, arrivalStop, intermediateStops,
-                path,
                 message,
                 new DbJourneyRef(journeyRef.journeyId, null, journeyRef.line));
+        leg.setPath(path);
+        return leg;
     }
 
     private Trip.Leg parseLeg(
@@ -734,7 +735,7 @@ public abstract class DbWebProvider extends DbProvider {
                     abschnitt, verkehrsmittel.optJSONArray("zugattribute"), null,
                     defaultTeilstreckenHinweis);
             final String journeyId = abschnitt.optString("journeyId", null);
-            return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, null, message,
+            return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, message,
                     journeyId == null ? null : new DbJourneyRef(journeyId, journeyRequestId, line));
         } else {
             final int dist = abschnitt.optInt("distanz");
@@ -744,7 +745,7 @@ public abstract class DbWebProvider extends DbProvider {
                     departureStop.getDepartureTime(),
                     arrivalStop.location,
                     arrivalStop.getArrivalTime(),
-                    null, dist);
+                    dist);
         }
     }
 
@@ -866,7 +867,8 @@ public abstract class DbWebProvider extends DbProvider {
             @Nullable final Set<Product> products,
             final boolean direct, final boolean bike,
             @Nullable final Integer minUmstiegszeit,
-            final @Nullable String context) throws IOException {
+            final @Nullable String context,
+            final boolean loadPath) throws IOException {
         // accessibility, optimize not supported
 
         final String deparr = dep ? "ABFAHRT" : "ANKUNFT";
@@ -943,7 +945,7 @@ public abstract class DbWebProvider extends DbProvider {
         }
     }
 
-    private QueryTripsResult doQueryReloadTrip(final DbTripRef tripRef) throws IOException {
+    private QueryTripsResult doQueryReloadTrip(final DbTripRef tripRef, final boolean loadPath) throws IOException {
         final String request = "{\"ctxRecon\":\"" + tripRef.ctxRecon
                 + "\",\"klasse\":\"KLASSE_2\"" //
                 + ",\"deutschlandTicketVorhanden\":" + tripRef.hasDticket
@@ -1182,7 +1184,7 @@ public abstract class DbWebProvider extends DbProvider {
     public QueryTripsResult queryTrips(
             final Location from, @Nullable final Location via, final Location to,
             final Date date, final boolean dep,
-            @Nullable final TripOptions options) throws IOException {
+            @Nullable final TripOptions options, final boolean loadPath) throws IOException {
         final Set<TripFlag> tripFlags = options == null ? null : options.flags;
         return doQueryTrips(from, via, to, date, dep,
                 options != null ? options.products : null,
@@ -1190,11 +1192,13 @@ public abstract class DbWebProvider extends DbProvider {
                 tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options == null || options.minTransferTimeMinutes == null ? null
                         : getApplicableMinTransferTime(options.minTransferTimeMinutes),
-                null);
+                null, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
         final DbWebApiContext ctx = (DbWebApiContext) context;
         final String ctxToken;
         if (later && ctx.canQueryLater()) {
@@ -1204,23 +1208,27 @@ public abstract class DbWebProvider extends DbProvider {
         } else {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
         }
-        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegszeit, ctxToken);
+        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegszeit, ctxToken, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryReloadTrip(final TripRef tripRef) throws IOException {
-        return doQueryReloadTrip((DbTripRef) tripRef);
+    public QueryTripsResult queryReloadTrip(
+            final TripRef tripRef,
+            final boolean loadPath) throws IOException {
+        return doQueryReloadTrip((DbTripRef) tripRef, loadPath);
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef) throws IOException {
-        return doQueryJourney((DbJourneyRef) aJourneyRef);
+    public QueryJourneyResult queryJourney(
+            final JourneyRef aJourneyRef,
+            final boolean loadPath) throws IOException {
+        return doQueryJourney((DbJourneyRef) aJourneyRef, loadPath);
     }
 
-    private QueryJourneyResult doQueryJourney(final DbJourneyRef journeyRef) throws IOException {
+    private QueryJourneyResult doQueryJourney(final DbJourneyRef journeyRef, final boolean loadPath) throws IOException {
         final HttpUrl url = this.journeyEndpoint.newBuilder()
                 .addQueryParameter("journeyId", journeyRef.journeyId)
-                .addQueryParameter("poly", "true")
+                .addQueryParameter("poly", loadPath ? "true" : "false")
                 .build();
         String page = null;
         try {
@@ -1311,11 +1319,13 @@ public abstract class DbWebProvider extends DbProvider {
     }
 
     @Override
-    public QueryTripsResult loadSharedTrip(final TripShare tripShare) throws IOException {
+    public QueryTripsResult loadSharedTrip(
+            final TripShare tripShare,
+            final boolean loadPath) throws IOException {
         final DbWebTripShare dbWebTripShare = (DbWebTripShare) tripShare;
         final String recon = linkSharing.loadSharedTrip(httpClient, dbWebTripShare);
         final DbTripRef tripRef = new DbTripRef((DbTripRef) tripShare.simplifiedTripRef, recon);
-        return queryReloadTrip(tripRef);
+        return queryReloadTrip(tripRef, loadPath);
     }
 
     public static class DbWebTripShare extends TripShare {

@@ -2086,15 +2086,16 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         return P_STATION_NAME_WHITESPACE.matcher(name).replaceAll(" ");
     }
 
-    protected void appendTripRequestParameters(final HttpUrl.Builder url, final Location from,
+    protected void appendTripRequestParameters(
+            final HttpUrl.Builder url, final Location from,
             final @Nullable Location via, final Location to, final Date time, final boolean dep,
-            @Nullable TripOptions options) {
+            @Nullable TripOptions options, final boolean loadPath) {
         appendCommonRequestParams(url, "XML");
 
         url.addEncodedQueryParameter("sessionID", "0");
         url.addEncodedQueryParameter("requestID", "0");
 
-        appendCommonTripRequestParams(url);
+        appendCommonTripRequestParams(url, loadPath);
 
         appendLocationParams(url, from, "origin");
         appendLocationParams(url, to, "destination");
@@ -2197,12 +2198,12 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         url.addEncodedQueryParameter("nextDepsPerLeg", "1"); // next departure in case previous was missed
     }
 
-    private HttpUrl commandLink(final String sessionId, final String requestId) {
+    private HttpUrl commandLink(final String sessionId, final String requestId, final boolean loadPath) {
         final HttpUrl.Builder url = tripEndpoint.newBuilder();
         url.addEncodedQueryParameter("sessionID", sessionId);
         url.addEncodedQueryParameter("requestID", requestId);
         url.addEncodedQueryParameter("calcNumberOfTrips", Integer.toString(numTripsRequested));
-        appendCommonTripRequestParams(url);
+        appendCommonTripRequestParams(url, loadPath);
         return url.build();
     }
 
@@ -2243,8 +2244,8 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef) throws IOException {
-        return queryJourneyUsingTripStopTimes(aJourneyRef);
+    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef, final boolean loadPath) throws IOException {
+        return queryJourneyUsingTripStopTimes(aJourneyRef, loadPath);
     }
 
     private void appendTripStopTimesRequestParameters(
@@ -2257,8 +2258,11 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         appendDateTimeParameters(url, journeyRef.targetTime, "date", "time");
     }
 
-    public QueryJourneyResult queryJourneyUsingTripStopTimes(final JourneyRef aJourneyRef) throws IOException {
+    public QueryJourneyResult queryJourneyUsingTripStopTimes(
+            final JourneyRef aJourneyRef,
+            final boolean loadPath) throws IOException {
         final HttpUrl.Builder url = tripStopTimesEndpoint.newBuilder();
+        appendCommonTripRequestParams(url, loadPath);
         appendTripStopTimesRequestParameters(url, (EfaJourneyRef) aJourneyRef);
         final AtomicReference<QueryJourneyResult> result = new AtomicReference<>();
 
@@ -2353,16 +2357,21 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
 
         final String message = null;
         final Trip.Public journeyLeg = new Trip.Public(styledLine, arrivalStop.location,
-                departureStop, arrivalStop, intermediateStops, null, message, journeyRef);
+                departureStop, arrivalStop, intermediateStops, message, journeyRef);
         return new QueryJourneyResult(header, url.toString(), journeyRef, journeyLeg);
     }
 
-    protected QueryJourneyResult queryJourneyMobile(final EfaJourneyRef journeyRef) throws IOException {
-        return queryJourneyMobileUsingStopSeqCoord(journeyRef);
+    protected QueryJourneyResult queryJourneyMobile(
+            final EfaJourneyRef journeyRef,
+            final boolean loadPath) throws IOException {
+        return queryJourneyMobileUsingStopSeqCoord(journeyRef, loadPath);
     }
 
-    protected QueryJourneyResult queryJourneyMobileUsingStopSeqCoord(final EfaJourneyRef journeyRef) throws IOException {
+    protected QueryJourneyResult queryJourneyMobileUsingStopSeqCoord(
+            final EfaJourneyRef journeyRef,
+            final boolean loadPath) throws IOException {
         final HttpUrl.Builder url = stopSeqCoordEndpoint.newBuilder();
+        appendCommonTripRequestParams(url, loadPath);
         appendTripStopTimesRequestParameters(url, journeyRef);
         final AtomicReference<QueryJourneyResult> result = new AtomicReference<>();
 
@@ -2491,24 +2500,31 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
 
         final String message = null;
         final Trip.Public journeyLeg = new Trip.Public(parseMobileMResult.line, arrivalStop.location,
-                departureStop, arrivalStop, intermediateStops, null, message, journeyRef);
+                departureStop, arrivalStop, intermediateStops, message, journeyRef);
         return new QueryJourneyResult(header, url.toString(), journeyRef, journeyLeg);
     }
 
-    private void appendCommonTripRequestParams(final HttpUrl.Builder url) {
+    private void appendCommonTripRequestParams(final HttpUrl.Builder url, final boolean loadPath) {
         url.addEncodedQueryParameter("coordListOutputFormat", useStringCoordListOutputFormat ? "string" : "list");
+
+        final String loadPathValue = loadPath ? "1" : "0";
+        url.addEncodedQueryParameter("genC", loadPathValue);
+        url.addEncodedQueryParameter("genP", loadPathValue);
+        url.addEncodedQueryParameter("genMaps", "0");
     }
 
     @Override
-    public QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
-            final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
+    public QueryTripsResult queryTrips(
+            final Location from, final @Nullable Location via, final Location to,
+            final Date date, final boolean dep, final @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
         final HttpUrl.Builder url = tripEndpoint.newBuilder();
-        appendTripRequestParameters(url, from, via, to, date, dep, options);
+        appendTripRequestParameters(url, from, via, to, date, dep, options, loadPath);
         final AtomicReference<QueryTripsResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {
             try {
-                result.set(queryTrips(url.build(), body.charStream()));
+                result.set(queryTrips(url.build(), body.charStream(), loadPath));
             } catch (final XmlPullParserException | ParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             } catch (final RuntimeException x) {
@@ -2521,15 +2537,17 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         return result.get();
     }
 
-    protected QueryTripsResult queryTripsMobile(final Location from, final @Nullable Location via, final Location to,
-            final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
+    protected QueryTripsResult queryTripsMobile(
+            final Location from, final @Nullable Location via, final Location to,
+            final Date date, final boolean dep, final @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
         final HttpUrl.Builder url = tripEndpoint.newBuilder();
-        appendTripRequestParameters(url, from, via, to, date, dep, options);
+        appendTripRequestParameters(url, from, via, to, date, dep, options, loadPath);
         final AtomicReference<QueryTripsResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {
             try {
-                result.set(queryTripsMobile(url.build(), from, via, to, body.charStream()));
+                result.set(queryTripsMobile(url.build(), from, via, to, body.charStream(), loadPath));
             } catch (final XmlPullParserException | ParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             } catch (final RuntimeException x) {
@@ -2543,17 +2561,20 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext contextObj, final boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext contextObj, final boolean later,
+            final boolean loadPath) throws IOException {
         final Context context = (Context) contextObj;
         final HttpUrl commandUrl = HttpUrl.parse(context.context);
         final HttpUrl.Builder url = commandUrl.newBuilder();
         appendCommonRequestParams(url, "XML");
+        appendCommonTripRequestParams(url, loadPath);
         url.addEncodedQueryParameter("command", later ? "tripNext" : "tripPrev");
         final AtomicReference<QueryTripsResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {
             try {
-                result.set(queryTrips(url.build(), body.charStream()));
+                result.set(queryTrips(url.build(), body.charStream(), loadPath));
             } catch (final XmlPullParserException | ParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             } catch (final RuntimeException x) {
@@ -2566,18 +2587,20 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         return result.get();
     }
 
-    protected QueryTripsResult queryMoreTripsMobile(final QueryTripsContext contextObj, final boolean later)
-            throws IOException {
+    protected QueryTripsResult queryMoreTripsMobile(
+            final QueryTripsContext contextObj, final boolean later,
+            final boolean loadPath) throws IOException {
         final Context context = (Context) contextObj;
         final HttpUrl commandUrl = HttpUrl.parse(context.context);
         final HttpUrl.Builder url = commandUrl.newBuilder();
         appendCommonRequestParams(url, "XML");
+        appendCommonTripRequestParams(url, loadPath);
         url.addEncodedQueryParameter("command", later ? "tripNext" : "tripPrev");
         final AtomicReference<QueryTripsResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {
             try {
-                result.set(queryTripsMobile(url.build(), null, null, null, body.charStream()));
+                result.set(queryTripsMobile(url.build(), null, null, null, body.charStream(), loadPath));
             } catch (final XmlPullParserException | ParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             } catch (final RuntimeException x) {
@@ -2590,8 +2613,9 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         return result.get();
     }
 
-    private QueryTripsResult queryTrips(final HttpUrl url, final Reader reader)
-            throws XmlPullParserException, IOException {
+    private QueryTripsResult queryTrips(
+            final HttpUrl url, final Reader reader,
+            final boolean loadPath) throws XmlPullParserException, IOException {
 // java.io.BufferedReader bufferedReader = new java.io.BufferedReader(reader);
 // bufferedReader.mark(1000000);
 // String s;
@@ -2861,8 +2885,10 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             XmlPullUtil.skipExit(pp, "itdItinerary");
         }
 
-        return new QueryTripsResult(header, url.toString(), from, via, to,
-                new Context(commandLink((String) context, requestId).toString()), trips);
+        return new QueryTripsResult(
+                header, url.toString(), from, via, to,
+                new Context(commandLink((String) context, requestId, loadPath).toString()),
+                trips);
     }
 
     private void processIndividualLeg(
@@ -2880,18 +2906,27 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         if (XmlPullUtil.test(pp, "itdPathCoordinates"))
             path = processItdPathCoordinates(pp);
 
+        final Trip.Individual leg;
         final Trip.Leg lastLeg = legs.size() > 0 ? legs.get(legs.size() - 1) : null;
         if (lastLeg != null && lastLeg instanceof Trip.Individual
                 && ((Trip.Individual) lastLeg).type == individualType) {
             final Trip.Individual lastIndividual = (Trip.Individual) legs.remove(legs.size() - 1);
-            if (path != null && lastIndividual.path != null)
-                path.addAll(0, lastIndividual.path);
-            legs.add(new Trip.Individual(individualType, lastIndividual.departure, lastIndividual.departureTime,
-                    arrivalLocation, arrivalTime, path, distance));
+            if (path != null && lastIndividual.getPath() != null)
+                path.addAll(0, lastIndividual.getPath());
+            leg = new Trip.Individual(
+                    individualType,
+                    lastIndividual.departure, lastIndividual.departureTime,
+                    arrivalLocation, arrivalTime,
+                    distance);
         } else {
-            legs.add(new Trip.Individual(individualType, departureLocation, departureTime, arrivalLocation, arrivalTime,
-                    path, distance));
+            leg = new Trip.Individual(
+                    individualType,
+                    departureLocation, departureTime,
+                    arrivalLocation, arrivalTime,
+                    distance);
         }
+        leg.setPath(path);
+        legs.add(leg);
     }
 
     private List<Stop> processItdPoints(
@@ -3122,13 +3157,17 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
                 arrivalTargetTime != null ? arrivalTargetTime : arrivalTime, arrivalTime != null ? arrivalTime : null,
                 arrivalPosition, null);
 
-        legs.add(new Trip.Public(styledLine, destination, departure, arrival, intermediateStops, path, message, journeyRef));
+        final Trip.Public leg = new Trip.Public(styledLine, destination, departure, arrival, intermediateStops, message, journeyRef);
+        leg.setPath(path);
+        legs.add(leg);
 
         return cancelled;
     }
 
-    private QueryTripsResult queryTripsMobile(final HttpUrl url, final Location from, final @Nullable Location via,
-            final Location to, final Reader reader) throws XmlPullParserException, IOException {
+    private QueryTripsResult queryTripsMobile(
+            final HttpUrl url, final Location from, final @Nullable Location via,
+            final Location to, final Reader reader,
+            final boolean loadPath) throws XmlPullParserException, IOException {
 // final java.io.BufferedReader bufferedReader = new java.io.BufferedReader(reader);
 // bufferedReader.mark(10000000);
 // String sx;
@@ -3323,19 +3362,25 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
                     XmlPullUtil.skipExit(pp, "l");
 
                     if (parseMobileMResult.line == Line.FOOTWAY) {
-                        legs.add(new Trip.Individual(Trip.Individual.Type.WALK, departure.location,
-                                departure.getDepartureTime(), arrival.location, arrival.getArrivalTime(), path, 0));
+                        final Trip.Individual leg = new Trip.Individual(Trip.Individual.Type.WALK, departure.location,
+                                departure.getDepartureTime(), arrival.location, arrival.getArrivalTime(), 0);
+                        leg.setPath(path);
+                        legs.add(leg);
                     } else if (parseMobileMResult.line == Line.TRANSFER) {
-                        legs.add(new Trip.Individual(Trip.Individual.Type.TRANSFER, departure.location,
-                                departure.getDepartureTime(), arrival.location, arrival.getArrivalTime(), path, 0));
+                        final Trip.Individual leg = new Trip.Individual(Trip.Individual.Type.TRANSFER, departure.location,
+                                departure.getDepartureTime(), arrival.location, arrival.getArrivalTime(), 0);
+                        leg.setPath(path);
+                        legs.add(leg);
                     } else if (parseMobileMResult.line == Line.SECURE_CONNECTION
                             || parseMobileMResult.line == Line.DO_NOT_CHANGE) {
                         // ignore
                     } else {
-                        legs.add(new Trip.Public(parseMobileMResult.line, parseMobileMResult.destination, departure, arrival,
-                                intermediateStops, path, message.length() > 0 ? message.toString() : null,
+                        final Trip.Public leg = new Trip.Public(parseMobileMResult.line, parseMobileMResult.destination, departure, arrival,
+                                intermediateStops, message.length() > 0 ? message.toString() : null,
                                 new EfaJourneyRef(parseMobileMResult.transportationId, departure.location.id,
-                                        parseMobileMResult.tripCode, departure.plannedDepartureTime)));
+                                        parseMobileMResult.tripCode, departure.plannedDepartureTime));
+                        leg.setPath(path);
+                        legs.add(leg);
                     }
                 }
 
@@ -3369,7 +3414,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
 
         final String[] context = (String[]) header.context;
         return new QueryTripsResult(header, url.toString(), from, via, to,
-                new Context(commandLink(context[0], context[1]).toString()), trips);
+                new Context(commandLink(context[0], context[1], loadPath).toString()), trips);
     }
 
     private List<Point> processItdPathCoordinates(final XmlPullParser pp) throws XmlPullParserException, IOException {

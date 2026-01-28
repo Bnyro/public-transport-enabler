@@ -695,14 +695,19 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
     }
 
     @Override
-    public QueryTripsResult queryTrips(final Location from, final @Nullable Location via, final Location to,
-            final Date date, final boolean dep, final @Nullable TripOptions options) throws IOException {
-        return queryTripsBinary(from, via, to, date, dep, options);
+    public QueryTripsResult queryTrips(
+            final Location from, final @Nullable Location via, final Location to,
+            final Date date, final boolean dep,
+            final @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
+        return queryTripsBinary(from, via, to, date, dep, options, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
-        return queryMoreTripsBinary(context, later);
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
+        return queryMoreTripsBinary(context, later, loadPath);
     }
 
     protected final QueryTripsResult queryTripsXml(Location from, @Nullable Location via, Location to, final Date date,
@@ -1161,18 +1166,19 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
                             final Stop arrival = new Stop(sectionArrivalLocation, false, arrivalTime, null,
                                     arrivalPos, null);
 
-                            legs.add(new Trip.Public(line, destination, departure, arrival, intermediateStops, path,
-                                    null));
+                            final Trip.Public leg = new Trip.Public(line, destination, departure, arrival, intermediateStops, null);
+                            leg.setPath(path);
+                            legs.add(leg);
                         } else {
                             if (legs.size() > 0 && legs.get(legs.size() - 1) instanceof Trip.Individual) {
                                 final Trip.Individual lastIndividualLeg = (Trip.Individual) legs
                                         .remove(legs.size() - 1);
                                 legs.add(new Trip.Individual(Trip.Individual.Type.WALK, lastIndividualLeg.departure,
-                                        lastIndividualLeg.departureTime, sectionArrivalLocation, arrivalTime, null,
+                                        lastIndividualLeg.departureTime, sectionArrivalLocation, arrivalTime,
                                         0));
                             } else {
                                 legs.add(new Trip.Individual(Trip.Individual.Type.WALK, sectionDepartureLocation,
-                                        departureTime, sectionArrivalLocation, arrivalTime, null, 0));
+                                        departureTime, sectionArrivalLocation, arrivalTime, 0));
                             }
                         }
                     }
@@ -1362,8 +1368,11 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
 
     private final static int QUERY_TRIPS_BINARY_BUFFER_SIZE = 384 * 1024;
 
-    protected final QueryTripsResult queryTripsBinary(Location from, @Nullable Location via, Location to,
-            final Date date, final boolean dep, @Nullable TripOptions options) throws IOException {
+    protected final QueryTripsResult queryTripsBinary(
+            Location from, @Nullable Location via, Location to,
+            final Date date, final boolean dep,
+            @Nullable TripOptions options,
+            final boolean loadPath) throws IOException {
         final ResultHeader header = new ResultHeader(network, SERVER_PRODUCT);
 
         if (!from.isIdentified()) {
@@ -1412,8 +1421,9 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
         appendCommonQueryTripsBinaryParameters(url);
     }
 
-    protected QueryTripsResult queryMoreTripsBinary(final QueryTripsContext contextObj, final boolean later)
-            throws IOException {
+    protected QueryTripsResult queryMoreTripsBinary(
+            final QueryTripsContext contextObj, final boolean later,
+            final boolean loadPath) throws IOException {
         final QueryTripsBinaryContext context = (QueryTripsBinaryContext) contextObj;
 
         final HttpUrl.Builder url = queryEndpoint.newBuilder().addPathSegment(apiLanguage);
@@ -1865,10 +1875,10 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
                                 final Trip.Individual lastIndividualLeg = (Trip.Individual) legs
                                         .remove(legs.size() - 1);
                                 leg = new Trip.Individual(individualType, lastIndividualLeg.departure,
-                                        lastIndividualLeg.departureTime, arrivalLocation, arrivalTime, null, 0);
+                                        lastIndividualLeg.departureTime, arrivalLocation, arrivalTime, 0);
                             } else {
                                 leg = new Trip.Individual(individualType, departureLocation, departureTime,
-                                        arrivalLocation, arrivalTime, null, 0);
+                                        arrivalLocation, arrivalTime, 0);
                             }
                         } else if (type == 2) {
                             final Product lineProduct;
@@ -1900,7 +1910,7 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
                                     timestampFromMillis(predictedArrivalTime),
                                     plannedArrivalPosition, predictedArrivalPosition, arrivalCancelled);
 
-                            leg = new Trip.Public(line, direction, departure, arrival, intermediateStops, null,
+                            leg = new Trip.Public(line, direction, departure, arrival, intermediateStops,
                                     disruptionText);
                         } else {
                             throw new IllegalStateException("unhandled type: " + type);

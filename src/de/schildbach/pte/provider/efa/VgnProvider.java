@@ -64,10 +64,11 @@ public class VgnProvider extends AbstractEfaProvider {
     }
 
     @Override
-    protected void appendTripRequestParameters(final HttpUrl.Builder url, final Location from,
+    protected void appendTripRequestParameters(
+            final HttpUrl.Builder url, final Location from,
             final @Nullable Location via, final Location to, final Date date, final boolean dep,
-            final @Nullable TripOptions options) {
-        super.appendTripRequestParameters(url, from, via, to, date, dep, options);
+            final @Nullable TripOptions options, final boolean loadPath) {
+        super.appendTripRequestParameters(url, from, via, to, date, dep, options, loadPath);
         url.addEncodedQueryParameter("itdLPxx_showTariffLevel", "1");
     }
 }

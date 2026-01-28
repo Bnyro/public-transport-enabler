@@ -724,13 +724,14 @@ public abstract class DbMovasProvider extends DbProvider {
         }
         final String message = parseJourneyMessages(journey, operator);
         final List<Point> path = parsePolylineGroup(journey);
-        return new Trip.Public(
+        final Trip.Public leg = new Trip.Public(
                 journeyRef.line,
                 arrivalStop.location,
                 departureStop, arrivalStop, intermediateStops,
-                path,
                 message,
                 new DbJourneyRef(journeyRef.journeyId, null, journeyRef.line));
+        leg.setPath(path);
+        return leg;
     }
 
     private Trip.Leg parseLeg(final JSONObject abschnitt, final Supplier<String> journeyRequestId) throws JSONException {
@@ -754,7 +755,7 @@ public abstract class DbMovasProvider extends DbProvider {
             final Location destination = parseDirection(abschnitt);
             final String message = parseJourneyMessages(abschnitt, null);
             final String journeyId = abschnitt.optString("zuglaufId", null);
-            return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, null, message,
+            return new Trip.Public(line, destination, departureStop, arrivalStop, intermediateStops, message,
                     journeyId == null ? null : new DbJourneyRef(journeyId, journeyRequestId.get(), line));
         } else {
             final int dist = abschnitt.optInt("distanz");
@@ -768,7 +769,7 @@ public abstract class DbMovasProvider extends DbProvider {
                     departureStop.getDepartureTime(),
                     arrivalStop.location,
                     arrivalStop.getArrivalTime(),
-                    null, dist);
+                    dist);
         }
     }
 
@@ -872,7 +873,8 @@ public abstract class DbMovasProvider extends DbProvider {
             final boolean direct,
             final boolean bike,
             @Nullable final Integer minUmstiegsdauer,
-            final @Nullable String context) throws IOException {
+            final @Nullable String context,
+            final boolean loadPath) throws IOException {
         // accessibility, optimize not supported
 
         final String deparr = dep ? "ABFAHRT" : "ANKUNFT";
@@ -958,7 +960,9 @@ public abstract class DbMovasProvider extends DbProvider {
         }
     }
 
-    private QueryTripsResult doQueryReloadTrip(final DbTripRef tripRef) throws IOException {
+    private QueryTripsResult doQueryReloadTrip(
+            final DbTripRef tripRef,
+            final boolean loadPath) throws IOException {
         final String request = "{\"autonomeReservierung\":false,\"einstiegsTypList\":[\"STANDARD\"],\"klasse\":\"KLASSE_2\"," //
                 + "\"verbindungHin\":{\"kontext\":\"" + tripRef.ctxRecon + "\"},"
                 + "\"reisendenProfil\":{\"reisende\":[{\"ermaessigungen\":[\"KEINE_ERMAESSIGUNG KLASSENLOS\"],\"reisendenTyp\":\"ERWACHSENER\"}]}," //
@@ -1167,7 +1171,8 @@ public abstract class DbMovasProvider extends DbProvider {
     public QueryTripsResult queryTrips(
             final Location from, @Nullable final Location via, final Location to,
             final Date date, final boolean dep,
-            @Nullable final TripOptions options) throws IOException {
+            @Nullable final TripOptions options,
+            final boolean loadPath) throws IOException {
         final Set<TripFlag> tripFlags = options == null ? null : options.flags;
         return doQueryTrips(from, via, to, date, dep,
                 options != null ? options.products : null,
@@ -1175,11 +1180,13 @@ public abstract class DbMovasProvider extends DbProvider {
                 tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options == null || options.minTransferTimeMinutes == null ? null
                         : getApplicableMinTransferTime(options.minTransferTimeMinutes),
-                null);
+                null, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later) throws IOException {
+    public QueryTripsResult queryMoreTrips(
+            final QueryTripsContext context, final boolean later,
+            final boolean loadPath) throws IOException {
         final DbMovasContext ctx = (DbMovasContext) context;
         final String ctxToken;
         if (later && ctx.canQueryLater()) {
@@ -1189,23 +1196,29 @@ public abstract class DbMovasProvider extends DbProvider {
         } else {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
         }
-        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegsdauer, ctxToken);
+        return doQueryTrips(ctx.from, ctx.via, ctx.to, ctx.date, ctx.dep, ctx.products, ctx.direct, ctx.bike, ctx.minUmstiegsdauer, ctxToken, loadPath);
     }
 
     @Override
-    public QueryTripsResult queryReloadTrip(final TripRef tripRef) throws IOException {
-        return doQueryReloadTrip((DbTripRef) tripRef);
+    public QueryTripsResult queryReloadTrip(
+            final TripRef tripRef,
+            final boolean loadPath) throws IOException {
+        return doQueryReloadTrip((DbTripRef) tripRef, loadPath);
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef) throws IOException {
-        return doQueryJourney((DbJourneyRef) aJourneyRef);
+    public QueryJourneyResult queryJourney(
+            final JourneyRef aJourneyRef,
+            final boolean loadPath) throws IOException {
+        return doQueryJourney((DbJourneyRef) aJourneyRef, loadPath);
     }
 
-    private QueryJourneyResult doQueryJourney(final DbJourneyRef journeyRef) throws IOException {
+    private QueryJourneyResult doQueryJourney(
+            final DbJourneyRef journeyRef,
+            final boolean loadPath) throws IOException {
         final HttpUrl url = this.journeyEndpoint.newBuilder()
                 .addPathSegment(journeyRef.journeyId)
-                .addQueryParameter("poly", "true")
+                .addQueryParameter("poly", loadPath ? "true" : "false")
                 .build();
         final String contentType = "application/x.db.vendo.mob.zuglauf.v2+json";
         String page = null;
@@ -1296,10 +1309,10 @@ public abstract class DbMovasProvider extends DbProvider {
     }
 
     @Override
-    public QueryTripsResult loadSharedTrip(final TripShare tripShare) throws IOException {
+    public QueryTripsResult loadSharedTrip(final TripShare tripShare, final boolean loadPath) throws IOException {
         final DbWebProvider.DbWebTripShare dbWebTripShare = (DbWebProvider.DbWebTripShare) tripShare;
         final String recon = linkSharing.loadSharedTrip(httpClient, dbWebTripShare);
         final DbTripRef tripRef = new DbTripRef((DbTripRef) tripShare.simplifiedTripRef, recon);
-        return queryReloadTrip(tripRef);
+        return queryReloadTrip(tripRef, loadPath);
     }
 }
