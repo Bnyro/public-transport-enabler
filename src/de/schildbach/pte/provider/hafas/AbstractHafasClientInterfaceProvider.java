@@ -856,45 +856,46 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                if ("H890".equals(err)) // No connections found.
+                final String plainErr = err.endsWith("_R") ? err.substring(0, err.length() - 2) : err;
+                if ("H890".equals(plainErr)) // No connections found.
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
-                if ("H883".equals(err)) // HAFAS Kernel: No connection found after post filtering
+                if ("H883".equals(plainErr)) // HAFAS Kernel: No connection found after post filtering
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
-                if ("H891".equals(err)) // No route found (try entering an intermediate station).
+                if ("H891".equals(plainErr)) // No route found (try entering an intermediate station).
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
-                if ("H892".equals(err)) // HAFAS Kernel: Request too complex (try entering less intermediate
+                if ("H892".equals(plainErr)) // HAFAS Kernel: Request too complex (try entering less intermediate
                     // stations).
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
-                if ("H895".equals(err)) // Departure/Arrival are too near.
+                if ("H895".equals(plainErr)) // Departure/Arrival are too near.
                     return new QueryTripsResult(header, QueryTripsResult.Status.TOO_CLOSE);
-                if ("H9220".equals(err) || "H9220_R".equals(err)) // Nearby to the given address stations could not be found.
+                if ("H9220".equals(plainErr)) // Nearby to the given address stations could not be found.
                     return new QueryTripsResult(header, QueryTripsResult.Status.UNRESOLVABLE_ADDRESS);
-                if ("H886".equals(err)) // HAFAS Kernel: No connections found within the requested time
+                if ("H886".equals(plainErr)) // HAFAS Kernel: No connections found within the requested time
                     // interval.
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
-                if ("H887".equals(err)) // HAFAS Kernel: Kernel computation time limit reached.
+                if ("H887".equals(plainErr)) // HAFAS Kernel: Kernel computation time limit reached.
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("H9240".equals(err)) // HAFAS Kernel: Internal error.
+                if ("H9240".equals(plainErr)) // HAFAS Kernel: Internal error.
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("H900".equals(err)) // HAFAS Kernel: No connection found, the connection period requested may be
+                if ("H900".equals(plainErr)) // HAFAS Kernel: No connection found, the connection period requested may be
                                         // outside the timetable period
                     return new QueryTripsResult(header, QueryTripsResult.Status.INVALID_DATE);
-                if ("H9360".equals(err)) // Date outside of the timetable period.
+                if ("H9360".equals(plainErr)) // Date outside of the timetable period.
                     return new QueryTripsResult(header, QueryTripsResult.Status.INVALID_DATE);
-                if ("H9380".equals(err)) // Departure/Arrival/Intermediate or equivalent stations def'd more
+                if ("H9380".equals(plainErr)) // Departure/Arrival/Intermediate or equivalent stations def'd more
                     // than once.
                     return new QueryTripsResult(header, QueryTripsResult.Status.TOO_CLOSE);
-                if ("FAIL".equals(err))
+                if ("FAIL".equals(plainErr))
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("PROBLEMS".equals(err) && "HCI Service: problems during service execution".equals(errTxt))
+                if ("PROBLEMS".equals(plainErr) && "HCI Service: problems during service execution".equals(errTxt))
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("LOCATION".equals(err) && "HCI Service: location missing or invalid".equals(errTxt))
+                if ("LOCATION".equals(plainErr) && "HCI Service: location missing or invalid".equals(errTxt))
                     return new QueryTripsResult(header, QueryTripsResult.Status.UNKNOWN_LOCATION);
-                if ("CGI_READ_FAILED".equals(err))
+                if ("CGI_READ_FAILED".equals(plainErr))
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("CGI_NO_SERVER".equals(err))
+                if ("CGI_NO_SERVER".equals(plainErr))
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
-                if ("H_UNKNOWN".equals(err))
+                if ("H_UNKNOWN".equals(plainErr))
                     return new QueryTripsResult(header, QueryTripsResult.Status.SERVICE_DOWN);
                 throw new RuntimeException(msg);
             }
