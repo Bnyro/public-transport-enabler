@@ -419,13 +419,14 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                if ("FAIL".equals(err) && "HCI Service: request failed".equals(errTxt))
+                final String plainErr = getPlainErr(err);
+                if ("FAIL".equals(plainErr) && "HCI Service: request failed".equals(errTxt))
                     return new NearbyLocationsResult(header, NearbyLocationsResult.Status.SERVICE_DOWN);
-                if ("CGI_READ_FAILED".equals(err))
+                if ("CGI_READ_FAILED".equals(plainErr))
                     return new NearbyLocationsResult(header, NearbyLocationsResult.Status.SERVICE_DOWN);
-                if ("CGI_NO_SERVER".equals(err))
+                if ("CGI_NO_SERVER".equals(plainErr))
                     return new NearbyLocationsResult(header, NearbyLocationsResult.Status.SERVICE_DOWN);
-                if ("H_UNKNOWN".equals(err))
+                if ("H_UNKNOWN".equals(plainErr))
                     return new NearbyLocationsResult(header, NearbyLocationsResult.Status.SERVICE_DOWN);
                 throw new RuntimeException(msg);
             }
@@ -517,17 +518,18 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                if ("LOCATION".equals(err) && "HCI Service: location missing or invalid".equals(errTxt))
+                final String plainErr = getPlainErr(err);
+                if ("LOCATION".equals(plainErr) && "HCI Service: location missing or invalid".equals(errTxt))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.INVALID_STATION);
-                if ("FAIL".equals(err) && "HCI Service: request failed".equals(errTxt))
+                if ("FAIL".equals(plainErr) && "HCI Service: request failed".equals(errTxt))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.SERVICE_DOWN);
-                if ("PROBLEMS".equals(err) && "HCI Service: problems during service execution".equals(errTxt))
+                if ("PROBLEMS".equals(plainErr) && "HCI Service: problems during service execution".equals(errTxt))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.SERVICE_DOWN);
-                if ("CGI_READ_FAILED".equals(err))
+                if ("CGI_READ_FAILED".equals(plainErr))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.SERVICE_DOWN);
-                if ("CGI_NO_SERVER".equals(err))
+                if ("CGI_NO_SERVER".equals(plainErr))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.SERVICE_DOWN);
-                if ("H_UNKNOWN".equals(err))
+                if ("H_UNKNOWN".equals(plainErr))
                     return new QueryDeparturesResult(header, QueryDeparturesResult.Status.SERVICE_DOWN);
                 throw new RuntimeException(msg);
             }
@@ -690,13 +692,14 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                if ("FAIL".equals(err) && "HCI Service: request failed".equals(errTxt))
+                final String plainErr = getPlainErr(err);
+                if ("FAIL".equals(plainErr) && "HCI Service: request failed".equals(errTxt))
                     return new SuggestLocationsResult(header, SuggestLocationsResult.Status.SERVICE_DOWN);
-                if ("CGI_READ_FAILED".equals(err))
+                if ("CGI_READ_FAILED".equals(plainErr))
                     return new SuggestLocationsResult(header, SuggestLocationsResult.Status.SERVICE_DOWN);
-                if ("CGI_NO_SERVER".equals(err))
+                if ("CGI_NO_SERVER".equals(plainErr))
                     return new SuggestLocationsResult(header, SuggestLocationsResult.Status.SERVICE_DOWN);
-                if ("H_UNKNOWN".equals(err))
+                if ("H_UNKNOWN".equals(plainErr))
                     return new SuggestLocationsResult(header, SuggestLocationsResult.Status.SERVICE_DOWN);
                 throw new RuntimeException(msg);
             }
@@ -856,7 +859,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                final String plainErr = err.endsWith("_R") ? err.substring(0, err.length() - 2) : err;
+                final String plainErr = getPlainErr(err);
                 if ("H890".equals(plainErr)) // No connections found.
                     return new QueryTripsResult(header, QueryTripsResult.Status.NO_TRIPS);
                 if ("H883".equals(plainErr)) // HAFAS Kernel: No connection found after post filtering
@@ -1218,21 +1221,22 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final String errTxt = svcRes.optString("errTxt");
                 final String msg = "err=" + err + ", errTxt=\"" + errTxt + "\"";
                 log.debug("Hafas error: {}", msg);
-                if ("H890".equals(err)) // No connections found.
+                final String plainErr = getPlainErr(err);
+                if ("H890".equals(plainErr)) // No connections found.
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.NO_JOURNEY);
-                if ("H887".equals(err)) // HAFAS Kernel: Kernel computation time limit reached.
+                if ("H887".equals(plainErr)) // HAFAS Kernel: Kernel computation time limit reached.
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("H9240".equals(err)) // HAFAS Kernel: Internal error.
+                if ("H9240".equals(plainErr)) // HAFAS Kernel: Internal error.
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("FAIL".equals(err))
+                if ("FAIL".equals(plainErr))
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("PROBLEMS".equals(err) && "HCI Service: problems during service execution".equals(errTxt))
+                if ("PROBLEMS".equals(plainErr) && "HCI Service: problems during service execution".equals(errTxt))
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("CGI_READ_FAILED".equals(err))
+                if ("CGI_READ_FAILED".equals(plainErr))
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("CGI_NO_SERVER".equals(err))
+                if ("CGI_NO_SERVER".equals(plainErr))
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
-                if ("H_UNKNOWN".equals(err))
+                if ("H_UNKNOWN".equals(plainErr))
                     return new QueryJourneyResult(header, QueryJourneyResult.Status.SERVICE_DOWN);
                 throw new RuntimeException(msg);
             }
@@ -1826,6 +1830,10 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             label = addName != null ? addName : shortName != null ? shortName : name;
         }
         return new Line(id, operator, product, label, longName, lineStyle(operator, product, label, style));
+    }
+
+    private static String getPlainErr(final String err) {
+        return err.endsWith("_R") ? err.substring(0, err.length() - 2) : err;
     }
 
     public static class JsonContext implements QueryTripsContext {
