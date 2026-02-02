@@ -210,8 +210,20 @@ public final class Stop implements Serializable {
     }
 
     public PTDate getMinTime() {
-        if (plannedDepartureTime == null)
-            return predictedDepartureTime;
+        if (plannedDepartureTime == null) {
+            if (predictedDepartureTime != null)
+                return predictedDepartureTime;
+
+            if (plannedArrivalTime == null)
+                return predictedArrivalTime;
+
+            if (predictedArrivalTime == null)
+                return plannedArrivalTime;
+
+            return predictedArrivalTime.before(plannedArrivalTime)
+                    ? predictedArrivalTime
+                    : plannedArrivalTime;
+        }
 
         if (predictedDepartureTime == null)
             return plannedDepartureTime;
@@ -222,8 +234,20 @@ public final class Stop implements Serializable {
     }
 
     public PTDate getMaxTime() {
-        if (plannedArrivalTime == null)
-            return predictedArrivalTime;
+        if (plannedArrivalTime == null) {
+            if (predictedArrivalTime != null)
+                return predictedArrivalTime;
+
+            if (plannedDepartureTime == null)
+                return predictedDepartureTime;
+
+            if (predictedDepartureTime == null)
+                return plannedDepartureTime;
+
+            return predictedDepartureTime.after(plannedDepartureTime)
+                    ? predictedDepartureTime
+                    : plannedDepartureTime;
+        }
 
         if (predictedArrivalTime == null)
             return plannedArrivalTime;
