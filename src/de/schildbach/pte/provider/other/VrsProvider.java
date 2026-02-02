@@ -799,11 +799,21 @@ public class VrsProvider extends AbstractNetworkProvider {
                                 arrivalPlanned = parseDateTime(viaJsonObject.getString("arrivalScheduled"));
                                 arrivalPredicted = (viaJsonObject.has("arrival"))
                                         ? parseDateTime(viaJsonObject.getString("arrival")) : null;
-                            } else if (segment.has("arrival")) {
+                            } else if (viaJsonObject.has("arrival")) {
                                 arrivalPlanned = parseDateTime(viaJsonObject.getString("arrival"));
                             }
-                            final Stop intermediateStop = new Stop(viaLocation, false /* arrival */, arrivalPlanned,
-                                    arrivalPredicted, viaPosition, viaPosition);
+                            PTDate departurePlanned = null;
+                            PTDate departurePredicted = null;
+                            if (viaJsonObject.has("departureScheduled")) {
+                                departurePlanned = parseDateTime(viaJsonObject.getString("departureScheduled"));
+                                departurePredicted = (viaJsonObject.has("departure"))
+                                        ? parseDateTime(viaJsonObject.getString("departure")) : null;
+                            } else if (viaJsonObject.has("departure")) {
+                                departurePlanned = parseDateTime(viaJsonObject.getString("departure"));
+                            }
+                            final Stop intermediateStop = new Stop(viaLocation,
+                                    arrivalPlanned, arrivalPredicted, viaPosition, viaPosition, false,
+                                    departurePlanned, departurePredicted, viaPosition, viaPosition, false);
                             intermediateStops.add(intermediateStop);
                         }
                     }
@@ -871,11 +881,24 @@ public class VrsProvider extends AbstractNetworkProvider {
                     if (type.equals("walk")) {
                         if (departurePlanned == null)
                             departurePlanned = legs.get(legs.size() - 1).getArrivalTime();
-                        final PTDate walkArrival = new PTDate(departurePlanned.getTime() + traveltime * 1000, departurePlanned.getOffset());
-                        // this old code would always ignore the walking time; historic reason?
-                        // if (arrivalPlanned == null)
-                        //    arrivalPlanned = walkArrival;
-                        arrivalPlanned = walkArrival;
+                        if (arrivalPlanned == null)
+                            arrivalPlanned = new PTDate(departurePlanned.getTime() + traveltime * 1000, departurePlanned.getOffset());
+
+                        // walk times from VRS may have seconds value.
+                        // Seems to be a bug on VRS side, because the seconds of the times
+                        // of the public transports before and after are cut off,
+                        // which then results in non-plausible connections with overlapping times
+                        // Hence, round up or down, however the given walking time will be shorter than required
+                        if (departurePlanned != null) {
+                            departurePlanned = new PTDate(
+                                    ((departurePlanned.getTime() + 59999) / 60000) * 60000,
+                                    departurePlanned.getOffset());
+                        }
+                        if (arrivalPlanned != null) {
+                            arrivalPlanned = new PTDate(
+                                    (arrivalPlanned.getTime() / 60000) * 60000,
+                                    arrivalPlanned.getOffset());
+                        }
 
                         final Trip.Individual newLeg = new Trip.Individual(Trip.Individual.Type.WALK, segmentOrigin, departurePlanned,
                                 segmentDestination, arrivalPlanned, (int) distance);
@@ -1121,7 +1144,7 @@ public class VrsProvider extends AbstractNetworkProvider {
     private String generateLocation(final Location loc, final List<Location> ambiguous) throws IOException {
         if (loc == null) {
             return null;
-        } else if (loc.id != null) {
+        } else if (loc.type == LocationType.STATION && loc.id != null) {
             return loc.id;
         } else if (loc.coord != null) {
             return String.format(Locale.ENGLISH, "%f,%f", loc.getLatAsDouble(), loc.getLonAsDouble());
