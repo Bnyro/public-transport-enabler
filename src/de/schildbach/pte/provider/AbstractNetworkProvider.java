@@ -320,6 +320,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
         // now split into words separated by dots and spaces
         boolean inPrefixArea = true;
         boolean nextWordIsPlace = true;
+        int parenthesisLevel = 0;
         int placeEnd = 0;
         int wordStart = -1;
         int wordEnd = -1;
@@ -330,6 +331,14 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                 ++pos;
             } else {
                 final char ch = placeAndName.charAt(pos);
+
+                if (ch == '(') {
+                    ++parenthesisLevel;
+                } else if (ch == ')') {
+                    if (--parenthesisLevel < 0)
+                        parenthesisLevel = 0;
+                }
+
                 if (ch == ' ') {
                     // word ends with space
                     if (wordStart < 0) {
@@ -337,7 +346,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
                         continue;
                     }
                     wordEnd = pos++;
-                } else if (ch == '.') {
+                } else if (ch == '.' && parenthesisLevel == 0) {
                     if (wordStart < 0)
                         wordStart = pos;
                     wordEnd = ++pos;
