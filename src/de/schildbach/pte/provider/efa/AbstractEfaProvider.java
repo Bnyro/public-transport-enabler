@@ -2354,6 +2354,11 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         final List<Stop> intermediateStops = processItdPoints(pp, calendar, null, null);
 
         final int size = intermediateStops.size();
+        if (size == 0) {
+            // no points, then the journey does not exist any more
+            return new QueryJourneyResult(header, QueryJourneyResult.Status.NO_JOURNEY);
+        }
+
         final Stop departureStop = intermediateStops.get(0);
         final Stop arrivalStop = intermediateStops.get(size - 1);
         intermediateStops.remove(size - 1);
