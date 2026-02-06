@@ -24,6 +24,7 @@ import java.net.Proxy;
 import java.security.KeyStore;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.Inflater;
 
 import javax.annotation.Nullable;
 import javax.net.ssl.KeyManager;
@@ -54,7 +56,9 @@ import de.schildbach.pte.exception.UnexpectedRedirectException;
 
 import okhttp3.Call;
 import okhttp3.CertificatePinner;
+import okhttp3.CompressionInterceptor;
 import okhttp3.Cookie;
+import okhttp3.Gzip;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -65,9 +69,16 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.Response.Builder;
 import okhttp3.ResponseBody;
+import okhttp3.brotli.Brotli;
 import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.zstd.Zstd;
+import okio.BufferedSource;
+import okio.InflaterSource;
+import okio.Source;
 
 import static java.util.Objects.requireNonNull;
+
+import androidx.annotation.NonNull;
 
 /**
  * @author Andreas Schildbach
@@ -90,6 +101,7 @@ public final class HttpClient {
     @Nullable
     private CertificatePinner certificatePinner = null;
     private String defaultReferer = null;
+    private String defaultOrigin = null;
 
     private static final Set<Integer> RESPONSE_CODES_BLOCKED =
             Stream.of(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_UNAUTHORIZED,
@@ -106,81 +118,12 @@ public final class HttpClient {
             Stream.of(HttpURLConnection.HTTP_INTERNAL_ERROR, HttpURLConnection.HTTP_BAD_GATEWAY)
                     .collect(Collectors.toSet());
 
-    private static final OkHttpClient OKHTTP_CLIENT;
-    static {
-        final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                new HttpLoggingInterceptor.Logger() {
-                    @Override
-                    public void log(final String message) {
-                        log.debug(message);
-                    }
-                });
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-
-        final Interceptor xmlEncodingInterceptor = new Interceptor() {
-            private final Pattern P_XML_PRAGMA = Pattern.compile("<\\?xml.*?encoding=\"(.*?)\".*?\\?>");
-            private final String HEADER_CONTENT_TYPE = "Content-Type";
-
-            @Override
-            public Response intercept(final Interceptor.Chain chain) throws IOException {
-                Response response = chain.proceed(chain.request());
-                final MediaType originalContentType = response.body().contentType();
-                if (originalContentType != null && "text".equalsIgnoreCase(originalContentType.type())
-                        && "xml".equalsIgnoreCase(originalContentType.subtype())
-                        && originalContentType.charset() == null) {
-                    final String peek = response.peekBody(64).string();
-                    final Matcher matcher = P_XML_PRAGMA.matcher(peek);
-                    if (matcher.find()) {
-                        final String encoding = matcher.group(1);
-                        final MediaType contentType = MediaType.get(originalContentType.type() + '/'
-                                + originalContentType.subtype() + ";charset=" + encoding);
-                        final ResponseBody body = response.body();
-                        final Builder responseBuilder = response.newBuilder();
-                        responseBuilder.header(HEADER_CONTENT_TYPE, contentType.toString());
-                        responseBuilder.body(ResponseBody.create(contentType, body.contentLength(), body.source()));
-                        response = responseBuilder.build();
-                        log.debug("Deriving missing {} encoding from XML pragma", encoding);
-                    }
-                }
-                return response;
-            }
-        };
-
-        final Interceptor retryInterceptor = new Interceptor() {
-            @Override
-            public Response intercept(final Chain chain) throws IOException {
-                final Request request = chain.request();
-                Response response = null;
-                try {
-                    response = chain.proceed(request);
-                } catch (final IOException x) {
-                    throw x;
-                }
-                if (response.isSuccessful() && response.peekBody(1).bytes().length == 0) {
-                    log.info("Got empty response, retrying {}", request.url());
-                    response.close();
-                    return chain.proceed(request); // retry
-                }
-                return response;
-            }
-        };
-
-        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.followRedirects(true);
-        builder.followSslRedirects(false);
-        builder.connectTimeout(15, TimeUnit.SECONDS);
-        builder.writeTimeout(30, TimeUnit.SECONDS);
-        builder.readTimeout(30, TimeUnit.SECONDS);
-        builder.addNetworkInterceptor(loggingInterceptor);
-        builder.addInterceptor(retryInterceptor);
-        builder.addInterceptor(xmlEncodingInterceptor);
-        OKHTTP_CLIENT = builder.build();
-    }
-
     private static final String SCRAPE_ACCEPT = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
     private static final int SCRAPE_PEEK_SIZE = 8192;
 
     private static final Logger log = LoggerFactory.getLogger(HttpClient.class);
+
+    private OkHttpClient okHttpClient;
 
     public HttpClient() {
         setHeader("Accept", SCRAPE_ACCEPT);
@@ -234,22 +177,159 @@ public final class HttpClient {
         this.defaultReferer = referer;
     }
 
+    public void setOrigin(final String origin) {
+        this.defaultOrigin = origin;
+    }
+
+    boolean compressionGzip = true;
+    boolean compressionDeflate = true;
+    boolean compressionBrotli = true;
+    boolean compressionZstandard = true;
+
+    public void setCompressionGzip(final boolean compressionGzip) {
+        this.compressionGzip = compressionGzip;
+    }
+
+    public void setCompressionDeflate(final boolean compressionDeflate) {
+        this.compressionDeflate = compressionDeflate;
+    }
+
+    public void setCompressionBrotli(final boolean compressionBrotli) {
+        this.compressionBrotli = compressionBrotli;
+    }
+
+    public void setCompressionZstandard(final boolean compressionZstandard) {
+        this.compressionZstandard = compressionZstandard;
+    }
+
+    private OkHttpClient getOkHttpClient() {
+        if (okHttpClient == null) {
+            final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                    new HttpLoggingInterceptor.Logger() {
+                        @Override
+                        public void log(final String message) {
+                            log.debug(message);
+                        }
+                    });
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+
+            final Interceptor xmlEncodingInterceptor = new Interceptor() {
+                private final Pattern P_XML_PRAGMA = Pattern.compile("<\\?xml.*?encoding=\"(.*?)\".*?\\?>");
+                private final String HEADER_CONTENT_TYPE = "Content-Type";
+
+                @Override
+                public Response intercept(final Interceptor.Chain chain) throws IOException {
+                    Response response = chain.proceed(chain.request());
+                    final MediaType originalContentType = response.body().contentType();
+                    if (originalContentType != null && "text".equalsIgnoreCase(originalContentType.type())
+                            && "xml".equalsIgnoreCase(originalContentType.subtype())
+                            && originalContentType.charset() == null) {
+                        final String peek = response.peekBody(64).string();
+                        final Matcher matcher = P_XML_PRAGMA.matcher(peek);
+                        if (matcher.find()) {
+                            final String encoding = matcher.group(1);
+                            final MediaType contentType = MediaType.get(originalContentType.type() + '/'
+                                    + originalContentType.subtype() + ";charset=" + encoding);
+                            final ResponseBody body = response.body();
+                            final Builder responseBuilder = response.newBuilder();
+                            responseBuilder.header(HEADER_CONTENT_TYPE, contentType.toString());
+                            responseBuilder.body(ResponseBody.create(contentType, body.contentLength(), body.source()));
+                            response = responseBuilder.build();
+                            log.debug("Deriving missing {} encoding from XML pragma", encoding);
+                        }
+                    }
+                    return response;
+                }
+            };
+
+            final Interceptor retryInterceptor = new Interceptor() {
+                @Override
+                public Response intercept(final Chain chain) throws IOException {
+                    final Request request = chain.request();
+                    Response response = null;
+                    try {
+                        response = chain.proceed(request);
+                    } catch (final IOException x) {
+                        throw x;
+                    }
+                    if (response.isSuccessful() && response.peekBody(1).bytes().length == 0) {
+                        log.info("Got empty response, retrying {}", request.url());
+                        response.close();
+                        return chain.proceed(request); // retry
+                    }
+                    return response;
+                }
+            };
+
+            final CompressionInterceptor.DecompressionAlgorithm DeflateInstance = new CompressionInterceptor.DecompressionAlgorithm() {
+                @NonNull
+                @Override
+                public String getEncoding() {
+                    return "deflate";
+                }
+
+                @NonNull
+                @Override
+                public Source decompress(@NonNull final BufferedSource compressedSource) {
+                    return new InflaterSource(compressedSource, new Inflater());
+                }
+            };
+
+            final List<CompressionInterceptor.DecompressionAlgorithm> decompressionAlgorithms = new ArrayList<>();
+            if (compressionGzip)
+                decompressionAlgorithms.add(Gzip.INSTANCE);
+            if (compressionDeflate)
+                decompressionAlgorithms.add(DeflateInstance);
+            if (compressionBrotli)
+                decompressionAlgorithms.add(Brotli.INSTANCE);
+            if (compressionZstandard)
+                decompressionAlgorithms.add(Zstd.INSTANCE);
+
+            final Interceptor compressionInterceptor = new CompressionInterceptor(
+                    decompressionAlgorithms.toArray(new CompressionInterceptor.DecompressionAlgorithm[]{}));
+
+            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.followRedirects(true);
+            builder.followSslRedirects(false);
+            builder.connectTimeout(15, TimeUnit.SECONDS);
+            builder.writeTimeout(30, TimeUnit.SECONDS);
+            builder.readTimeout(30, TimeUnit.SECONDS);
+            builder.addNetworkInterceptor(loggingInterceptor);
+            builder.addInterceptor(retryInterceptor);
+            builder.addInterceptor(xmlEncodingInterceptor);
+            builder.addInterceptor(compressionInterceptor);
+
+            if (proxy != null || trustAllCertificates || certificatePinner != null || useClientCertificate) {
+                if (proxy != null)
+                    builder.proxy(proxy);
+                if (trustAllCertificates || useClientCertificate)
+                    configureSSL(builder);
+                if (certificatePinner != null)
+                    builder.certificatePinner(certificatePinner);
+            }
+
+            okHttpClient = builder.build();
+        }
+        return okHttpClient;
+    }
+
     public CharSequence get(final HttpUrl url) throws IOException {
-        return get(url, null, null, defaultReferer);
+        return get(url, null, null, defaultReferer, defaultOrigin);
     }
 
     public CharSequence get(final HttpUrl url, final String postRequest, final String requestContentType)
             throws IOException {
-        return get(url, postRequest, requestContentType, defaultReferer);
+        return get(url, postRequest, requestContentType, defaultReferer, defaultOrigin);
     }
 
     public CharSequence get(
             final HttpUrl url, final String postRequest,
-            final String requestContentType, final String referer)
+            final String requestContentType,
+            final String referer, final String origin)
             throws IOException {
         final StringBuilder buffer = new StringBuilder();
         final Callback callback = (bodyPeek, body) -> buffer.append(body.string());
-        getInputStream(callback, url, postRequest, requestContentType, referer);
+        getInputStream(callback, url, postRequest, requestContentType, referer, origin);
         return buffer;
     }
 
@@ -259,23 +339,24 @@ public final class HttpClient {
 
     public void getInputStream(
             final Callback callback, final HttpUrl url) throws IOException {
-        getInputStream(callback, url, null, null, defaultReferer);
+        getInputStream(callback, url, null, null, defaultReferer, defaultOrigin);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String referer) throws IOException {
-        getInputStream(callback, url, null, null, referer);
+        getInputStream(callback, url, null, null, referer, defaultOrigin);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String postRequest,
             final String requestContentType) throws IOException {
-        getInputStream(callback, url, postRequest, requestContentType, defaultReferer);
+        getInputStream(callback, url, postRequest, requestContentType, defaultReferer, defaultOrigin);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String postRequest,
-            final String requestContentType, final String referer) throws IOException {
+            final String requestContentType,
+            final String referer, String origin) throws IOException {
         requireNonNull(callback);
         requireNonNull(url);
 
@@ -290,23 +371,13 @@ public final class HttpClient {
             request.header("User-Agent", userAgent);
         if (referer != null)
             request.header("Referer", referer);
+        if (origin != null)
+            request.header("Origin", origin);
         final Cookie sessionCookie = this.sessionCookie;
         if (sessionCookie != null && sessionCookie.name().equals(sessionCookieName))
             request.header("Cookie", sessionCookie.toString());
 
-        final OkHttpClient okHttpClient;
-        if (proxy != null || trustAllCertificates || certificatePinner != null || useClientCertificate) {
-            final OkHttpClient.Builder builder = OKHTTP_CLIENT.newBuilder();
-            if (proxy != null)
-                builder.proxy(proxy);
-            if (trustAllCertificates || useClientCertificate)
-                configureSSL(builder);
-            if (certificatePinner != null)
-                builder.certificatePinner(certificatePinner);
-            okHttpClient = builder.build();
-        } else {
-            okHttpClient = OKHTTP_CLIENT;
-        }
+        final OkHttpClient okHttpClient = getOkHttpClient();
 
         final Call call = okHttpClient.newCall(request.build());
         try (final Response response = call.execute()) {

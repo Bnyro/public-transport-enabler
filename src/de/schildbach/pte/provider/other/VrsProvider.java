@@ -365,7 +365,7 @@ public class VrsProvider extends AbstractNetworkProvider {
         httpClient.setClientCertificate(clientCertificate, clientCertificatePassword);
         if (!isAppMode) {
             httpClient.setReferer(ORIGIN_URL + "/");
-            httpClient.setHeader("Origin", ORIGIN_URL);
+            httpClient.setOrigin(ORIGIN_URL);
         }
         httpClient.setHeader("Accept", "application/json");
         setStyles(STYLES);

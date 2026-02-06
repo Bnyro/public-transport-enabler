@@ -156,7 +156,8 @@ public abstract class DbWebProvider extends DbProvider {
             Capability.TRIP_DETAILS
         );
 
-    private static final HttpUrl WEB_API_BASE = HttpUrl.parse("https://www.bahn.de/web/api/");
+    private static final String BASE_URL = "https://www.bahn.de";
+    private static final HttpUrl WEB_API_BASE = HttpUrl.parse(BASE_URL + "/web/api/");
     private final ResultHeader resultHeader;
 
     private static final Map<String, Product> PRODUCTS_MAP = new LinkedHashMap<String, Product>() {
@@ -235,6 +236,10 @@ public abstract class DbWebProvider extends DbProvider {
 
         this.linkSharing = new DbWebLinkSharing();
         this.bahnvorhersageProvider = new BahnvorhersageProvider();
+
+        httpClient.setReferer(BASE_URL);
+        httpClient.setOrigin(BASE_URL);
+        httpClient.setCompressionDeflate(false); // somehow the DB web server wait for 10 seconds if this was enabled
     }
 
     @Override
