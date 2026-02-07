@@ -276,12 +276,12 @@ public final class HttpClient {
             };
 
             final List<CompressionInterceptor.DecompressionAlgorithm> decompressionAlgorithms = new ArrayList<>();
+            if (compressionBrotli)
+                decompressionAlgorithms.add(Brotli.INSTANCE);
             if (compressionGzip)
                 decompressionAlgorithms.add(Gzip.INSTANCE);
             if (compressionDeflate)
                 decompressionAlgorithms.add(DeflateInstance);
-            if (compressionBrotli)
-                decompressionAlgorithms.add(Brotli.INSTANCE);
             if (compressionZstandard)
                 decompressionAlgorithms.add(Zstd.INSTANCE);
 

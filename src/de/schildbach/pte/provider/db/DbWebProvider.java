@@ -239,7 +239,11 @@ public abstract class DbWebProvider extends DbProvider {
 
         httpClient.setReferer(BASE_URL);
         httpClient.setOrigin(BASE_URL);
-        httpClient.setCompressionDeflate(false); // somehow the DB web server wait for 10 seconds if this was enabled
+
+        // somehow the DB web server waits for 10 seconds if this was enabled
+        // httpClient.setCompressionDeflate(false);
+        // ... now still enabled, because we changed the order of offered compression types
+        // the DB server only fails with this order: gzip, deflate, br, zstd
     }
 
     @Override
