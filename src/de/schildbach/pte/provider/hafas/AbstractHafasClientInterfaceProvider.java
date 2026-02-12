@@ -1295,14 +1295,17 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return false;
     }
 
+    protected String getHafasLanguage(final String lang) {
+        return "de".equals(lang) ? "deu" : "eng";
+    }
+
     private String wrapJsonApiRequest(final String meth, final String req, final boolean formatted) throws IOException {
-        final String lang = "de".equals(userInterfaceLanguage) ? "deu" : "eng";
         final String apiAuthorization = getApiAuthorization();
         return "{" //
                 + (apiAuthorization != null ? "\"auth\":" + apiAuthorization + "," : "") //
                 + "\"client\":" + requireNonNull(apiClient) + "," //
                 + (apiExt != null ? "\"ext\":\"" + apiExt + "\"," : "") //
-                + "\"ver\":\"" + requireNonNull(apiVersion) + "\",\"lang\":\"" + lang + "\"," //
+                + "\"ver\":\"" + requireNonNull(apiVersion) + "\",\"lang\":\"" + getHafasLanguage(userInterfaceLanguage) + "\"," //
                 + "\"svcReqL\":[" //
                 + "{\"meth\":\"ServerInfo\",\"req\":{\"getServerDateTime\":true" //
                 + (apiLevel <= 75 ? ",\"getTimeTablePeriod\":false" : "") //

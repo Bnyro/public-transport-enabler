@@ -50,6 +50,11 @@ public class SeProvider extends AbstractHafasClientInterfaceProvider {
         setApiAuthorization(apiAuthorization);
     }
 
+    @Override
+    protected String getHafasLanguage(final String lang) {
+        return "sv".equals(lang) ? "s" : super.getHafasLanguage("en");
+    }
+
     private static final Pattern P_SPLIT_NAME_PAREN = Pattern.compile("(.*) \\((.{3,}?) kn\\)");
 
     @Override
