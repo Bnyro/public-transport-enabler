@@ -253,13 +253,17 @@ public final class Trip implements Serializable {
         return products;
     }
 
+    public void setUniqueId(@Nullable final String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
+
     public String getUniqueId() {
         if (uniqueId == null) {
             final StringBuilder builder = new StringBuilder();
             int n = 0;
             for (final Trip.Leg leg: legs) {
                 if (leg instanceof Trip.Public) {
-                    Public pubLeg = (Public) leg;
+                    final Public pubLeg = (Public) leg;
                     final JourneyRef journeyRef = pubLeg.journeyRef;
                     if (n++ > 0) builder.append("/");
                     final String journeyId;
