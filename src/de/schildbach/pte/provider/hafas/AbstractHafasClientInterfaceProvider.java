@@ -325,10 +325,10 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (!(o instanceof HafasTripRef)) return false;
-            HafasTripRef that = (HafasTripRef) o;
+            final HafasTripRef that = (HafasTripRef) o;
             return super.equals(that)
                     && Objects.equals(ctxRecon, that.ctxRecon);
         }
@@ -349,10 +349,15 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         }
 
         @Override
-        public boolean equals(Object o) {
+        public String getUniqueId() {
+            return jid;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (!(o instanceof HafasJourneyRef)) return false;
-            HafasJourneyRef that = (HafasJourneyRef) o;
+            final HafasJourneyRef that = (HafasJourneyRef) o;
             return Objects.equals(jid, that.jid);
         }
 
@@ -363,7 +368,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     }
 
     @Override
-    public QueryJourneyResult queryJourney(JourneyRef journeyRef, final boolean loadPath) throws IOException {
+    public QueryJourneyResult queryJourney(final JourneyRef journeyRef, final boolean loadPath) throws IOException {
         return jsonJourney((HafasJourneyRef) journeyRef, loadPath);
     }
 

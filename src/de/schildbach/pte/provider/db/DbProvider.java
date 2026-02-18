@@ -177,10 +177,10 @@ public abstract class DbProvider extends AbstractNetworkProvider {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (!(o instanceof DbTripRef)) return false;
-            DbTripRef that = (DbTripRef) o;
+            final DbTripRef that = (DbTripRef) o;
             return super.equals(that)
                     && Objects.equals(ctxRecon, that.ctxRecon)
                     && limitToDticket == that.limitToDticket
@@ -208,15 +208,20 @@ public abstract class DbProvider extends AbstractNetworkProvider {
         }
 
         @Override
+        public String getUniqueId() {
+            return journeyId;
+        }
+
+        @Override
         public String getBahnvorhersageRefreshJourneyId() {
             return journeyRequestId;
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (this == o) return true;
             if (!(o instanceof DbJourneyRef)) return false;
-            DbJourneyRef that = (DbJourneyRef) o;
+            final DbJourneyRef that = (DbJourneyRef) o;
             return Objects.equals(journeyId, that.journeyId)
                     && Objects.equals(line, that.line);
         }
@@ -272,7 +277,7 @@ public abstract class DbProvider extends AbstractNetworkProvider {
             this.entries = parseMap("¶", ctxRecon);
             if (entries != null) {
                 final StringBuilder sb = new StringBuilder();
-                for (String key : entries.keySet()) {
+                for (final String key : entries.keySet()) {
                     if ("KCC".equals(key) || "SC".equals(key))
                         continue;
                     final String value = entries.get(key);

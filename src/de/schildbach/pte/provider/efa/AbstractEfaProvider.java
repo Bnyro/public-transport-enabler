@@ -2230,6 +2230,16 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             this.targetTime = targetTime;
         }
 
+        private String uniqueId;
+
+        @Override
+        public String getUniqueId() {
+            if (uniqueId == null) {
+                uniqueId = transportationID + "~" + stopID + "~" + tripCode + "~" + targetTime.getTime();
+            }
+            return uniqueId;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -2248,8 +2258,8 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryJourneyResult queryJourney(final JourneyRef aJourneyRef, final boolean loadPath) throws IOException {
-        return queryJourneyUsingTripStopTimes(aJourneyRef, loadPath);
+    public QueryJourneyResult queryJourney(final JourneyRef journeyRef, final boolean loadPath) throws IOException {
+        return queryJourneyUsingTripStopTimes((EfaJourneyRef) journeyRef, loadPath);
     }
 
     private void appendTripStopTimesRequestParameters(
@@ -2263,16 +2273,16 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
     }
 
     public QueryJourneyResult queryJourneyUsingTripStopTimes(
-            final JourneyRef aJourneyRef,
+            final EfaJourneyRef journeyRef,
             final boolean loadPath) throws IOException {
         final HttpUrl.Builder url = tripStopTimesEndpoint.newBuilder();
         appendCommonTripRequestParams(url, loadPath);
-        appendTripStopTimesRequestParameters(url, (EfaJourneyRef) aJourneyRef);
+        appendTripStopTimesRequestParameters(url, journeyRef);
         final AtomicReference<QueryJourneyResult> result = new AtomicReference<>();
 
         final HttpClient.Callback callback = (bodyPeek, body) -> {
             try {
-                result.set(queryJourneyUsingTripStopTimes(url.build(), body.charStream(), (EfaJourneyRef) aJourneyRef));
+                result.set(queryJourneyUsingTripStopTimes(url.build(), body.charStream(), journeyRef));
             } catch (final XmlPullParserException | ParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             } catch (final RuntimeException x) {
