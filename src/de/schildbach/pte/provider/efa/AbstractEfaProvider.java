@@ -3639,7 +3639,25 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
         if (pp.getEventType() == XmlPullParser.END_DOCUMENT)
             throw new ParserException("empty document");
 
-        final ResultHeader header = new ResultHeader(network, SERVER_PRODUCT);
+        XmlPullUtil.require(pp, "itdRequest");
+
+        final String serverVersion = XmlPullUtil.optAttr(pp, "version", null);
+        final String now = XmlPullUtil.optAttr(pp, "now", null);
+        final String sessionId = XmlPullUtil.optAttr(pp, "sessionID", null);
+        final String serverId = XmlPullUtil.optAttr(pp, "serverID", null);
+
+        final long serverTime;
+        if (now != null) {
+            final Calendar calendar = new GregorianCalendar(timeZone);
+            ParserUtils.parseIsoDate(calendar, now.substring(0, 10));
+            ParserUtils.parseEuropeanTime(calendar, now.substring(11));
+            serverTime = calendar.getTimeInMillis();
+        } else {
+            serverTime = 0;
+        }
+
+        final ResultHeader header = new ResultHeader(network, SERVER_PRODUCT, serverVersion, serverId, serverTime,
+                sessionId);
 
         XmlPullUtil.enter(pp, "itdRequest");
 
