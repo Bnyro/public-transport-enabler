@@ -34,6 +34,7 @@ import de.schildbach.pte.dto.NearbyLocationsResult;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -51,7 +52,7 @@ public class DingProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48401092, 9992037));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48401092, 9992037));
         print(result);
     }
 

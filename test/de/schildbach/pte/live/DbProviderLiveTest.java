@@ -40,6 +40,7 @@ import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
 import de.schildbach.pte.dto.TripOptions;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -51,7 +52,7 @@ public class DbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(52525589, 13369548));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(52525589, 13369548));
         print(result);
     }
 
@@ -60,7 +61,7 @@ public class DbProviderLiveTest extends AbstractProviderLiveTest {
     // TODO not supported
     public void nearbyPOIsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyLocations(EnumSet.of(LocationType.POI),
-                Location.coord(Point.fromDouble(52.5304903, 13.3791152)));
+                LocationUtil.coord(Point.fromDouble(52.5304903, 13.3791152)));
         print(result);
         assertThat(result.locations, hasItem(new Location(LocationType.POI,
                 "A=4@O=Berlin, Museum für Naturkunde (Kultur und Unterhal@X=13380003@Y=52529724@u=0@U=104@L=991597061@",
@@ -187,8 +188,8 @@ public class DbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(52535576, 13422171); // Berlin Marienburger Str.
-        final Location to = Location.coord(52525589, 13369548); // Berlin Hbf
+        final Location from = LocationUtil.coord(52535576, 13422171); // Berlin Marienburger Str.
+        final Location to = LocationUtil.coord(52525589, 13369548); // Berlin Hbf
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

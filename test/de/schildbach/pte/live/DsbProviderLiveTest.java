@@ -32,6 +32,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -43,7 +44,7 @@ public class DsbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(55670305, 12554169));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(55670305, 12554169));
         print(result);
     }
 
@@ -77,9 +78,9 @@ public class DsbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(55.6724746, 12.5649895)); // Copenhagen Central
+        final Location from = LocationUtil.coord(Point.fromDouble(55.6724746, 12.5649895)); // Copenhagen Central
                                                                                         // Station
-        final Location to = Location.coord(Point.fromDouble(55.6650983, 12.5595897)); // Dybbølsbro
+        final Location to = LocationUtil.coord(Point.fromDouble(55.6650983, 12.5595897)); // Dybbølsbro
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

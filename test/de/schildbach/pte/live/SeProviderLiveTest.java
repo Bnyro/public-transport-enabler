@@ -34,6 +34,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -45,7 +46,7 @@ public class SeProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(57709311, 11988459));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(57709311, 11988459));
         print(result);
     }
 
@@ -111,8 +112,8 @@ public class SeProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(59.3299775, 18.0576622)); // Stockholm Central
-        final Location to = Location.coord(Point.fromDouble(59.3136500, 18.0620848)); // Stockholms södra
+        final Location from = LocationUtil.coord(Point.fromDouble(59.3299775, 18.0576622)); // Stockholm Central
+        final Location to = LocationUtil.coord(Point.fromDouble(59.3136500, 18.0620848)); // Stockholms södra
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

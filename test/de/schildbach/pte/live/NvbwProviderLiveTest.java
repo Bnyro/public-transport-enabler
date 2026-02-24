@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -64,19 +65,19 @@ public class NvbwProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinateStuttgart() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48778953, 9178963));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48778953, 9178963));
         print(result);
     }
 
     @Test
     public void nearbyStationsByCoordinateReutlingen() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48493550, 9205656));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48493550, 9205656));
         print(result);
     }
 
     @Test
     public void nearbyStationsByCoordinateFreiburg() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48000295, 7854338));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48000295, 7854338));
         print(result);
     }
 

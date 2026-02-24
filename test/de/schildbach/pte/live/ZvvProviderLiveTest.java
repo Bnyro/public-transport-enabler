@@ -32,6 +32,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -43,7 +44,7 @@ public class ZvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(47378968, 8540534));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(47378968, 8540534));
         print(result);
     }
 
@@ -107,8 +108,8 @@ public class ZvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(47.3782535, 8.5392280)); // Zürich Hauptbahnhof
-        final Location to = Location.coord(Point.fromDouble(47.3852910, 8.5172170)); // Bahnhof Hardbrücke
+        final Location from = LocationUtil.coord(Point.fromDouble(47.3782535, 8.5392280)); // Zürich Hauptbahnhof
+        final Location to = LocationUtil.coord(Point.fromDouble(47.3852910, 8.5172170)); // Bahnhof Hardbrücke
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

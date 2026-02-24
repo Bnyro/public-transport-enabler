@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -46,13 +47,13 @@ public class OoevvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48207355, 16370602));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48207355, 16370602));
         print(result);
     }
 
     @Test
     public void nearbyStationsByCoordinateSalzburg() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(47809195, 13054919));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(47809195, 13054919));
         print(result);
     }
 
@@ -159,7 +160,7 @@ public class OoevvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripCoordinateToStation() throws Exception {
-        final Location from = Location.coord(47238096, 9585581);
+        final Location from = LocationUtil.coord(47238096, 9585581);
         final Location to = new Location(LocationType.STATION, "480081700", null, "Feldkirch Bahnhof");
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);

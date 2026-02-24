@@ -31,6 +31,7 @@ import de.schildbach.pte.dto.NearbyLocationsResult;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -48,7 +49,7 @@ public class InvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48744678, 11437941));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48744678, 11437941));
         print(result);
     }
 
@@ -82,8 +83,8 @@ public class InvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(48744414, 11434603); // Ingolstadt Hbf
-        final Location to = Location.coord(48751558, 11426546); // Ingolstadt Nordbahnhof
+        final Location from = LocationUtil.coord(48744414, 11434603); // Ingolstadt Hbf
+        final Location to = LocationUtil.coord(48751558, 11426546); // Ingolstadt Nordbahnhof
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
         final QueryTripsResult laterResult = queryMoreTrips(result.context, true);

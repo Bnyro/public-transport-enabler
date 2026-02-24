@@ -52,14 +52,14 @@ public final class Location implements Serializable, MessagePackUtils.Packable {
 
     public Location(
             final LocationType type,
-            final String id,
+            final @Nullable String id,
             final String identityId,
             final String displayId,
-            final Point coord,
-            final String place,
-            final String name,
-            final Set<Product> products,
-            final String infoUrl) {
+            final @Nullable Point coord,
+            final @Nullable String place,
+            final @Nullable String name,
+            final @Nullable Set<Product> products,
+            final @Nullable String infoUrl) {
         this.type = requireNonNull(type);
         this.id = id;
         this.identityId = identityId == null ? id : identityId;
@@ -70,7 +70,7 @@ public final class Location implements Serializable, MessagePackUtils.Packable {
         this.products = products;
         this.infoUrl = infoUrl;
 
-        checkArgument(id == null || id.length() > 0, () ->
+        checkArgument(id == null || !id.isEmpty(), () ->
                 "ID cannot be the empty string");
         checkArgument(place == null || name != null, () ->
                 "place '" + place + "' without name cannot exist");
@@ -131,19 +131,11 @@ public final class Location implements Serializable, MessagePackUtils.Packable {
         MessagePackUtils.packNullableString(packer, infoUrl);
     }
 
-    public static Location coord(final int lat, final int lon) {
-        return new Location(LocationType.COORD, null, Point.from1E6(lat, lon));
-    }
-
-    public static Location coord(final Point coord) {
-        return new Location(LocationType.COORD, null, coord);
-    }
-
-    public final boolean hasId() {
+    public boolean hasId() {
         return id != null && !id.isEmpty();
     }
 
-    public final boolean hasCoord() {
+    public boolean hasCoord() {
         return coord != null;
     }
 
@@ -167,7 +159,7 @@ public final class Location implements Serializable, MessagePackUtils.Packable {
         return coord.getLonAs1E6();
     }
 
-    public final boolean hasName() {
+    public boolean hasName() {
         return name != null;
     }
 

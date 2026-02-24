@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -47,7 +48,7 @@ public class AvvAugsburgProviderLiveTest extends AbstractProviderLiveTest {
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyStations(
-                Location.coord(Point.fromDouble(48.3652470, 10.8855950))); // Hbf
+                LocationUtil.coord(Point.fromDouble(48.3652470, 10.8855950))); // Hbf
         print(result);
     }
 

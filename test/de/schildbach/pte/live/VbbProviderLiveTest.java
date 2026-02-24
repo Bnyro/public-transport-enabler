@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -46,7 +47,7 @@ public class VbbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(52548505, 13388640));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(52548505, 13388640));
         print(result);
         assertTrue(result.locations.size() > 0);
     }
@@ -185,17 +186,17 @@ public class VbbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(52.5249451, 13.3696614)); // Berlin Hbf
-        final Location to = Location.coord(Point.fromDouble(52.5071378, 13.3318680)); // S Zoologischer Garten
+        final Location from = LocationUtil.coord(Point.fromDouble(52.5249451, 13.3696614)); // Berlin Hbf
+        final Location to = LocationUtil.coord(Point.fromDouble(52.5071378, 13.3318680)); // S Zoologischer Garten
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }
 
     @Test
     public void viaTripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(52.4999599, 13.3619411)); // U Kurfürsterstr.
-        final Location via = Location.coord(Point.fromDouble(52.4778673, 13.3286942)); // S+U Bundesplatz
-        final Location to = Location.coord(Point.fromDouble(52.5126122, 13.5752134)); // S+U Wuhletal
+        final Location from = LocationUtil.coord(Point.fromDouble(52.4999599, 13.3619411)); // U Kurfürsterstr.
+        final Location via = LocationUtil.coord(Point.fromDouble(52.4778673, 13.3286942)); // S+U Bundesplatz
+        final Location to = LocationUtil.coord(Point.fromDouble(52.5126122, 13.5752134)); // S+U Wuhletal
         final QueryTripsResult result = queryTrips(from, via, to, new Date(), true, null);
         print(result);
     }

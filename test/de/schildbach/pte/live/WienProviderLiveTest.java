@@ -36,6 +36,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -53,14 +54,14 @@ public class WienProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48207355, 16370602));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48207355, 16370602));
         print(result);
     }
 
     @Test
     public void nearbyLocationsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyLocations(EnumSet.of(LocationType.STATION, LocationType.POI),
-                Location.coord(48207355, 16370602));
+                LocationUtil.coord(48207355, 16370602));
         print(result);
         assertTrue(result.locations.size() > 0);
     }
@@ -133,8 +134,8 @@ public class WienProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final QueryTripsResult result = queryTrips(Location.coord(48180281, 16333551), null,
-                Location.coord(48240452, 16444788), new Date(), true, null);
+        final QueryTripsResult result = queryTrips(LocationUtil.coord(48180281, 16333551), null,
+                LocationUtil.coord(48240452, 16444788), new Date(), true, null);
         print(result);
         final QueryTripsResult laterResult = queryMoreTrips(result.context, true);
         print(laterResult);

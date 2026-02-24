@@ -34,6 +34,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -52,14 +53,14 @@ public class MerseyProviderLiveTest extends AbstractProviderLiveTest {
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyLocations(EnumSet.of(LocationType.STATION),
-                Location.coord(53401112, -2958903));
+                LocationUtil.coord(53401112, -2958903));
         print(result);
     }
 
     @Test
     public void nearbyLocationsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyLocations(EnumSet.of(LocationType.STATION, LocationType.POI),
-                Location.coord(53401112, -2958903));
+                LocationUtil.coord(53401112, -2958903));
         print(result);
     }
 

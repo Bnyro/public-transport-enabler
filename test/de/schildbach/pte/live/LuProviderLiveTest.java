@@ -32,6 +32,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -43,7 +44,7 @@ public class LuProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(49610187, 6132746));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(49610187, 6132746));
         print(result);
     }
 
@@ -88,9 +89,9 @@ public class LuProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(49.5999681, 6.1342493)); // Luxembourg Central
+        final Location from = LocationUtil.coord(Point.fromDouble(49.5999681, 6.1342493)); // Luxembourg Central
                                                                                        // Station
-        final Location to = Location.coord(Point.fromDouble(49.5956369, 6.1200199)); // Hollerich
+        final Location to = LocationUtil.coord(Point.fromDouble(49.5956369, 6.1200199)); // Hollerich
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

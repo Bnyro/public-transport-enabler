@@ -26,6 +26,8 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
+
 import org.junit.Test;
 
 import java.util.Date;
@@ -43,7 +45,7 @@ public class BartProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(Point.fromDouble(37.7928550, -122.3968986)));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(Point.fromDouble(37.7928550, -122.3968986)));
         print(result);
     }
 
@@ -103,8 +105,8 @@ public class BartProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(37.7927820, -122.3969430)); // Embarcadero BART Station, San Francisco
-        final Location to = Location.coord(Point.fromDouble(37.9793260, -122.0541840)); // Airport Plaza, Concord
+        final Location from = LocationUtil.coord(Point.fromDouble(37.7927820, -122.3969430)); // Embarcadero BART Station, San Francisco
+        final Location to = LocationUtil.coord(Point.fromDouble(37.9793260, -122.0541840)); // Airport Plaza, Concord
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

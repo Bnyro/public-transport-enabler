@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -53,7 +54,7 @@ public class BvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(52486400, 13350744));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(52486400, 13350744));
         print(result);
     }
 
@@ -186,8 +187,8 @@ public class BvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final QueryTripsResult result = queryTrips(Location.coord(52501507, 13357026), null,
-                Location.coord(52513639, 13568648), new Date(), true, null);
+        final QueryTripsResult result = queryTrips(LocationUtil.coord(52501507, 13357026), null,
+                LocationUtil.coord(52513639, 13568648), new Date(), true, null);
         print(result);
         final QueryTripsResult laterResult = queryMoreTrips(result.context, true);
         print(laterResult);
@@ -207,8 +208,8 @@ public class BvgProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void viaTripBetweenCoordinates() throws Exception {
-        final QueryTripsResult result = queryTrips(Location.coord(52501507, 13357026),
-                Location.coord(52479868, 13324247), Location.coord(52513639, 13568648), new Date(), true, null);
+        final QueryTripsResult result = queryTrips(LocationUtil.coord(52501507, 13357026),
+                LocationUtil.coord(52479868, 13324247), LocationUtil.coord(52513639, 13568648), new Date(), true, null);
         print(result);
         final QueryTripsResult laterResult = queryMoreTrips(result.context, true);
         print(laterResult);

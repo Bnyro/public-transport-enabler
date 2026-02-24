@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author full-duplex
@@ -61,7 +62,7 @@ public class NegentweeProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(52377548, 4901218));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(52377548, 4901218));
         print(result);
         assertEquals(NearbyLocationsResult.Status.OK, result.status);
     }
@@ -69,7 +70,7 @@ public class NegentweeProviderLiveTest extends AbstractProviderLiveTest {
     @Test
     public void nearbyLocationsByCoordinate() throws Exception {
         final NearbyLocationsResult result = queryNearbyLocations(EnumSet.of(LocationType.ANY),
-                Location.coord(52377548, 4901218), -1, 101);
+                LocationUtil.coord(52377548, 4901218), -1, 101);
         print(result);
         assertEquals(NearbyLocationsResult.Status.OK, result.status);
     }

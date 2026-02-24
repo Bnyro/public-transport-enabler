@@ -34,6 +34,7 @@ import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
 import de.schildbach.pte.util.Iso8601Format;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -51,7 +52,7 @@ public class NasaProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(51346546, 12383333));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(51346546, 12383333));
 
         print(result);
         assertEquals(NearbyLocationsResult.Status.OK, result.status);

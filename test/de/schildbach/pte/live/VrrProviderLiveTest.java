@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -53,7 +54,7 @@ public class VrrProviderLiveTest extends AbstractProviderLiveTest {
     @Test
     public void nearbyStationsByCoordinateDuesseldorf() throws Exception {
         final NearbyLocationsResult result = queryNearbyStations(
-                Location.coord(Point.fromDouble(51.2190163, 6.7757496)));
+                LocationUtil.coord(Point.fromDouble(51.2190163, 6.7757496)));
         print(result);
         assertThat(result.locations, hasItem(new Location(LocationType.STATION, "20018243"))); // Graf-Adolf-Platz
     }
@@ -61,7 +62,7 @@ public class VrrProviderLiveTest extends AbstractProviderLiveTest {
     @Test
     public void nearbyStationsByCoordinatePaderborn() throws Exception {
         final NearbyLocationsResult result = queryNearbyStations(
-                Location.coord(Point.fromDouble(51.7169873, 8.7537501)));
+                LocationUtil.coord(Point.fromDouble(51.7169873, 8.7537501)));
         print(result);
         assertThat(result.locations, hasItem(new Location(LocationType.STATION, "23207100"))); // Rathausplatz
     }

@@ -38,6 +38,7 @@ import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
 import de.schildbach.pte.dto.TripOptions;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -49,13 +50,13 @@ public class NvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(50108625, 8669604));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(50108625, 8669604));
         print(result);
     }
 
     @Test
     public void nearbyStationsByCoordinateKassel() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(51318447, 9496250));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(51318447, 9496250));
         print(result);
     }
 
@@ -194,8 +195,8 @@ public class NvvProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(51.3183386, 9.4896007)); // Kassel Hauptbahnhof
-        final Location to = Location.coord(Point.fromDouble(51.3245728, 9.4521398)); // Kassel-Kirchditmold
+        final Location from = LocationUtil.coord(Point.fromDouble(51.3183386, 9.4896007)); // Kassel Hauptbahnhof
+        final Location to = LocationUtil.coord(Point.fromDouble(51.3245728, 9.4521398)); // Kassel-Kirchditmold
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

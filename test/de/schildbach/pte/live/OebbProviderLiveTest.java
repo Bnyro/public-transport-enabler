@@ -33,6 +33,7 @@ import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -44,7 +45,7 @@ public class OebbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(48200239, 16370773));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(48200239, 16370773));
         print(result);
         assertEquals(NearbyLocationsResult.Status.OK, result.status);
         assertTrue(result.locations.size() > 0);
@@ -139,8 +140,8 @@ public class OebbProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(Point.fromDouble(48.1850101, 16.3778549)); // Wien Hauptbahnhof
-        final Location to = Location.coord(Point.fromDouble(48.2902408, 14.2918619)); // Linz Hauptbahnhof
+        final Location from = LocationUtil.coord(Point.fromDouble(48.1850101, 16.3778549)); // Wien Hauptbahnhof
+        final Location to = LocationUtil.coord(Point.fromDouble(48.2902408, 14.2918619)); // Linz Hauptbahnhof
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
     }

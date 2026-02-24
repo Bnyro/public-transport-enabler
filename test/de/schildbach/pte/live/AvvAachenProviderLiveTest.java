@@ -35,6 +35,7 @@ import de.schildbach.pte.dto.NearbyLocationsResult;
 import de.schildbach.pte.dto.QueryDeparturesResult;
 import de.schildbach.pte.dto.QueryTripsResult;
 import de.schildbach.pte.dto.SuggestLocationsResult;
+import de.schildbach.pte.util.LocationUtil;
 
 /**
  * @author Andreas Schildbach
@@ -46,7 +47,7 @@ public class AvvAachenProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void nearbyStationsByCoordinate() throws Exception {
-        final NearbyLocationsResult result = queryNearbyStations(Location.coord(50767803, 6091504));
+        final NearbyLocationsResult result = queryNearbyStations(LocationUtil.coord(50767803, 6091504));
         print(result);
     }
 
@@ -144,8 +145,8 @@ public class AvvAachenProviderLiveTest extends AbstractProviderLiveTest {
 
     @Test
     public void tripBetweenCoordinates() throws Exception {
-        final Location from = Location.coord(50767803, 6091504); // Aachen Hbf
-        final Location to = Location.coord(50769870, 6073840); // Aachen, Schanz
+        final Location from = LocationUtil.coord(50767803, 6091504); // Aachen Hbf
+        final Location to = LocationUtil.coord(50769870, 6073840); // Aachen, Schanz
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, null);
         print(result);
         assertEquals("1008", result.from.id);
