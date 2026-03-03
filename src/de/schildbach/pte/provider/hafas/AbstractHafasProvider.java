@@ -51,6 +51,7 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
             Capability.DEPARTURES,
             Capability.TRIPS,
             Capability.TRIPS_VIA,
+            Capability.MIN_TRANSFER_TIMES,
             Capability.JOURNEY,
             Capability.TRIP_RELOAD,
             Capability.DIRECT_OPTION,

@@ -96,6 +96,27 @@ import okhttp3.HttpUrl;
  * @author Andreas Schildbach
  */
 public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafasProvider {
+
+    private static final int[] VALID_MIN_TRANSFER_TIMES = { 0, 5, 10, 20, 30, 60 };
+
+    private static int getApplicableMinTransferTime(final int requestedMinTransferTime) {
+        if (requestedMinTransferTime <= VALID_MIN_TRANSFER_TIMES[0])
+            return VALID_MIN_TRANSFER_TIMES[0];
+
+        if (requestedMinTransferTime >= VALID_MIN_TRANSFER_TIMES[VALID_MIN_TRANSFER_TIMES.length - 1])
+            return VALID_MIN_TRANSFER_TIMES[VALID_MIN_TRANSFER_TIMES.length - 1];
+
+        for (int i = VALID_MIN_TRANSFER_TIMES.length; i > 0; --i) {
+            final int time = VALID_MIN_TRANSFER_TIMES[i - 1];
+            if (time == requestedMinTransferTime)
+                return requestedMinTransferTime;
+            if (time < requestedMinTransferTime)
+                return VALID_MIN_TRANSFER_TIMES[i];
+        }
+
+        return VALID_MIN_TRANSFER_TIMES[0];
+    }
+
     private final HttpUrl apiBase;
     private String apiEndpoint = "mgate.exe";
     @Nullable
@@ -279,6 +300,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options != null ? options.products : null,
                 options != null ? options.walkSpeed : null,
+                options == null || options.minTransferTimeMinutes == null ? null
+                        : getApplicableMinTransferTime(options.minTransferTimeMinutes),
                 null,
                 loadPath);
     }
@@ -291,6 +314,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return jsonTripSearch(jsonContext.from, jsonContext.via, jsonContext.to, jsonContext.date, jsonContext.dep,
                 jsonContext.direct, jsonContext.bike,
                 jsonContext.products, jsonContext.walkSpeed,
+                jsonContext.minTransferTimeMinutes,
                 later ? jsonContext.laterContext : jsonContext.earlierContext,
                 loadPath);
     }
@@ -832,7 +856,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final Location from, @Nullable final Location via, final Location to,
             final Date time, final boolean dep,
             final boolean direct, final boolean bike,
-            final Set<Product> products, final WalkSpeed walkSpeed) throws IOException {
+            final Set<Product> products, final WalkSpeed walkSpeed,
+            final Integer minTransferTimeMinutes) throws IOException {
         final Calendar c = new GregorianCalendar(timeZone);
         c.setTime(time);
 
@@ -1103,7 +1128,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             }
 
             final JsonContext context = new JsonContext(
-                    from, via, to, time, dep, direct, bike, products, walkSpeed,
+                    from, via, to, time, dep, direct, bike, products, walkSpeed, minTransferTimeMinutes,
                     res.optString("outCtxScrF"), res.optString("outCtxScrB"));
             return new QueryTripsResult(header, null, from, null, to, context, trips);
         } catch (final JSONException x) {
@@ -1121,7 +1146,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final boolean direct,
             final boolean bike,
             final @Nullable Set<Product> products, final @Nullable WalkSpeed walkSpeed,
-            final @Nullable String moreContext,
+            final @Nullable Integer minTransferTimeMinutes, final @Nullable String moreContext,
             final boolean loadPath) throws IOException {
         from = jsonTripSearchIdentify(from);
         if (from == null)
@@ -1173,10 +1198,14 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 + "\"getPolyline\":" + (loadPath ? "true" : "false") + ",\"getPasslist\":true," //
                 + (apiLevel <= 24 ? "\"getConGroups\":false," : "") //
                 + (direct ? "\"maxChg\":0," : "") //
-                + "\"getIST\":false,\"getEco\":false,\"minChgTime\":-1,\"extChgTime\":-1}", //
+                + "\"minChgTime\":" + (minTransferTimeMinutes != null ? minTransferTimeMinutes : -1) + "," //
+                + "\"getIST\":false,\"getEco\":false,\"extChgTime\":-1}", //
                 false);
 
-        return jsonTripRequest("TripSearch", request, from, via, to, time, dep, direct, bike, products, walkSpeed);
+        return jsonTripRequest("TripSearch", request,
+                from, via, to,
+                time, dep,
+                direct, bike, products, walkSpeed, minTransferTimeMinutes);
     }
 
     private QueryTripsResult jsonTripReload(final HafasTripRef tripRef, final boolean loadPath) throws IOException {
@@ -1188,7 +1217,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 false);
 
         return jsonTripRequest("Reconstruction", request, tripRef.from, tripRef.via, tripRef.to,
-                new Date(), true, false, false, null, null);
+                new Date(), true, false, false, null, null, null);
     }
 
     private QueryJourneyResult jsonJourney(
@@ -1854,6 +1883,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         public final boolean bike;
         public final Set<Product> products;
         public final WalkSpeed walkSpeed;
+        public final Integer minTransferTimeMinutes;
         public final String laterContext, earlierContext;
 
         public JsonContext(
@@ -1861,8 +1891,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final Date date, final boolean dep,
                 final boolean direct, final boolean bike,
                 final Set<Product> products,
-                final WalkSpeed walkSpeed, final String laterContext,
-                final String earlierContext) {
+                final WalkSpeed walkSpeed, final Integer minTransferTimeMinutes,
+                final String laterContext, final String earlierContext) {
             this.from = from;
             this.via = via;
             this.to = to;
@@ -1872,6 +1902,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             this.bike = bike;
             this.products = products;
             this.walkSpeed = walkSpeed;
+            this.minTransferTimeMinutes = minTransferTimeMinutes;
             this.laterContext = laterContext;
             this.earlierContext = earlierContext;
         }
