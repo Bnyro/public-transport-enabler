@@ -33,8 +33,14 @@ import okhttp3.HttpUrl;
  * @author Andreas Schildbach
  */
 public class InvgProvider extends AbstractHafasClientInterfaceProvider {
-    private static final HttpUrl API_BASE = HttpUrl.parse("https://fpa.invg.de/bin/");
-    private static final Product[] PRODUCTS_MAP = { Product.BUS, null, null, Product.REGIONAL_TRAIN };
+    private static final HttpUrl API_BASE = HttpUrl.parse("https://invg.hafas.de/");
+    private static final Product[] PRODUCTS_MAP = {
+            Product.BUS,
+            null, null,
+            Product.REGIONAL_TRAIN,
+            null, null, null, null, null,
+            Product.ON_DEMAND,
+    };
     private static final String DEFAULT_API_CLIENT = "{\"id\":\"INVG\",\"type\":\"AND\"}";
 
     public InvgProvider(final String apiAuthorization) {
@@ -43,7 +49,8 @@ public class InvgProvider extends AbstractHafasClientInterfaceProvider {
 
     public InvgProvider(final String apiClient, final String apiAuthorization) {
         super(NetworkId.INVG, API_BASE, PRODUCTS_MAP);
-        setApiVersion("1.73");
+        setApiEndpoint("gate");
+        setApiVersion("1.78");
         setApiClient(apiClient);
         setApiAuthorization(apiAuthorization);
         setStyles(STYLES);
