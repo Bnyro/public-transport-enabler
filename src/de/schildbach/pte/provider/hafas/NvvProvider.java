@@ -51,26 +51,49 @@ public class NvvProvider extends AbstractHafasClientInterfaceProvider {
         setStyles(STYLES);
     }
 
-    private static final String[] PLACES = { "Frankfurt (Main)", "Offenbach (Main)", "Mainz", "Wiesbaden", "Marburg",
-            "Kassel", "Hanau", "Göttingen", "Darmstadt", "Aschaffenburg", "Berlin", "Fulda" };
+    private static final String[] SPECIAL_PLACES = new String[]{
+// the following contain spaces and must be listed here
+            "Groß Gerau",
+            "Bad Soden-Salmünster-Bad Soden", // special, because "Bad Soden-Salmünster-Bad Soden Schweizerhaus", but "Bad Soden-Salmünster-Salmünster Am Palmusacker" and "Bad Soden-Salmünster-Kath.-Willenroth Waldschule"
+//            "Hofheim am Taunus",
+//            "Bad Homburg v.d.H."
+// we now split using a complex Regex, so the following do not need an exception
+//            "Frankfurt (Main)",
+//            "Offenbach (Main)",
+// we now split at first space, so the following do not need an exception
+//            "Mainz",
+//            "Wiesbaden",
+//            "Marburg",
+//            "Kassel",
+//            "Hanau",
+//            "Göttingen",
+//            "Darmstadt",
+//            "Aschaffenburg",
+//            "Berlin",
+//            "Fulda"
+    };
 
     @Override
-    protected String[] splitStationName(final String name) {
-        if (name.startsWith("F "))
-            return new String[] { "Frankfurt", name.substring(2) };
-        if (name.startsWith("OF "))
-            return new String[] { "Offenbach", name.substring(3) };
-        if (name.startsWith("MZ "))
-            return new String[] { "Mainz", name.substring(3) };
+    protected String[] splitStationName(final String placeAndName) {
+//        if (placeAndName.startsWith("F "))
+//            return new String[] {"Frankfurt", placeAndName.substring(2)};
+//
+//        if (placeAndName.startsWith("OF "))
+//            return new String[] {"Offenbach", placeAndName.substring(3)};
+//
+//        if (placeAndName.startsWith("MZ "))
+//            return new String[] {"Mainz", placeAndName.substring(3)};
 
-        for (final String place : PLACES) {
-            if (name.startsWith(place + " - "))
-                return new String[] { place, name.substring(place.length() + 3) };
-            else if (name.startsWith(place + " ") || name.startsWith(place + "-"))
-                return new String[] { place, name.substring(place.length() + 1) };
-        }
+        return parseSpaceDelimitedPlaceAndStation(placeAndName, SPECIAL_PLACES);
+    }
 
-        return super.splitStationName(name);
+    @Override
+    protected String[] splitPOI(final String poi) {
+        final Matcher m = P_SPLIT_NAME_FIRST_COMMA.matcher(poi);
+        if (m.matches())
+            return new String[] { m.group(1), m.group(2) };
+
+        return super.splitStationName(poi);
     }
 
     @Override
