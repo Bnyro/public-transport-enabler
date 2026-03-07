@@ -334,6 +334,15 @@ public abstract class DbProvider extends AbstractNetworkProvider {
         }
     }
 
+    public static String getSaneLineShortName(final Product product, final String shortName) {
+        if (shortName == null)
+            return null;
+        if (product == Product.BUS || product == Product.TRAM || product == Product.SUBWAY) {
+            return shortName.replaceAll("^[A-Za-z]+ ", "");
+        }
+        return shortName;
+    }
+
     @Override
     public Description getDescription() {
         return getDbDescription();

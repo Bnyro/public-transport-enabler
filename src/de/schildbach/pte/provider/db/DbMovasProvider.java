@@ -21,6 +21,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.msgpack.core.MessageUnpacker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -91,6 +93,8 @@ import okhttp3.HttpUrl;
  * @author Andreas Schildbach
  */
 public abstract class DbMovasProvider extends DbProvider {
+    private static final Logger log = LoggerFactory.getLogger(DbMovasProvider.class);
+
     public static class Fernverkehr extends DbMovasProvider {
         public Fernverkehr() {
             this(NetworkId.DBMOVAS);
@@ -383,7 +387,7 @@ public abstract class DbMovasProvider extends DbProvider {
         Point coord = null;
         try {
             coord = Point.from1E6(Integer.parseInt(props.get("Y")), Integer.parseInt(props.get("X")));
-        } catch (Exception e) {
+        } catch (final Exception e) {
         }
         return new Location(
                 Optional.ofNullable(ID_LOCATION_TYPE_MAP.get(props.get("A"))).orElse(LocationType.ANY),
@@ -415,7 +419,7 @@ public abstract class DbMovasProvider extends DbProvider {
         return out;
     }
 
-    private String formatLocationTypes(Set<LocationType> types) {
+    private String formatLocationTypes(final Set<LocationType> types) {
         if (types == null || types.contains(LocationType.ANY))
             return "\"" + LOCATION_TYPE_MAP.get(LocationType.ANY) + "\"";
         return types.stream()
@@ -453,7 +457,7 @@ public abstract class DbMovasProvider extends DbProvider {
         return new Location(type, id, coord, placeAndName[0], placeAndName[1], products, url);
     }
 
-    private Location parseLocation(JSONObject loc) {
+    private Location parseLocation(final JSONObject loc) {
         if (loc == null)
             return null;
         final String lidStr = loc.optString("locationId", null);
@@ -540,7 +544,7 @@ public abstract class DbMovasProvider extends DbProvider {
         return joiner.toString();
     }
 
-    private static Set<String> bicycleAttributes = new HashSet<String>() {
+    private static final Set<String> bicycleAttributes = new HashSet<String>() {
         private static final long serialVersionUID = 3738440155820969289L;
 
         {
@@ -551,7 +555,7 @@ public abstract class DbMovasProvider extends DbProvider {
         }
     };
 
-    private static Set<String> wheelChairAttributes = new HashSet<String>() {
+    private static final Set<String> wheelChairAttributes = new HashSet<String>() {
         private static final long serialVersionUID = 3738440155820969289L;
 
         {
@@ -564,17 +568,14 @@ public abstract class DbMovasProvider extends DbProvider {
         Product product = SHORT_PRODUCTS_MAP.get(jny.optString("produktGattung", null));
         if (product == null)
             product = SHORT_PRODUCTS_MAP.get(jny.optString("produktGattungen", null));
-        final String name = Optional.ofNullable(jny.optString("langtext", null)).orElse(jny.optString("mitteltext", null));
-        String shortName = jny.optString("mitteltext", null);
-        if (shortName != null && (product == Product.BUS || product == Product.TRAM)) {
-            shortName = shortName.replaceAll("^[A-Za-z]+ ", "");
-        }
+        final String shortName = jny.optString("mitteltext", null);
+        final String name = Optional.ofNullable(jny.optString("langtext", null)).orElse(shortName);
         String operator = null;
         final Set<Line.Attr> lineAttrs = new HashSet<>();
         final JSONArray attributNotizen = jny.optJSONArray("attributNotizen");
         if (attributNotizen != null) {
             for (int iAttr = 0; iAttr < attributNotizen.length(); ++iAttr) {
-                JSONObject attr = attributNotizen.getJSONObject(iAttr);
+                final JSONObject attr = attributNotizen.getJSONObject(iAttr);
                 final String key = attr.getString("key");
                 if ("OP".equals(key)) {
                     operator = attr.getString("text");
@@ -589,20 +590,20 @@ public abstract class DbMovasProvider extends DbProvider {
                 jny.optString("zuglaufId", null),
                 operator,
                 product,
-                shortName,
+                getSaneLineShortName(product, shortName),
                 name,
                 lineStyle(styles, operator, product, name),
                 lineAttrs,
                 null);
     }
 
-    private boolean parseCancelled(JSONObject stop) throws JSONException {
+    private boolean parseCancelled(final JSONObject stop) throws JSONException {
         final boolean cancelled = stop.optBoolean("cancelled", false);
         if (cancelled)
             return true;
         final JSONObject ersatzhaltNotiz = stop.optJSONObject("ersatzhaltNotiz");
         if (ersatzhaltNotiz != null) {
-            String typ = ersatzhaltNotiz.getString("typ");
+            final String typ = ersatzhaltNotiz.getString("typ");
             if ("GECANCELT".equals(typ)) {
                 return true;
             }
@@ -639,7 +640,7 @@ public abstract class DbMovasProvider extends DbProvider {
     private List<Stop> parseStops(final JSONArray stops) throws JSONException {
         if (stops == null)
             return null;
-        List<Stop> out = new LinkedList<>();
+        final List<Stop> out = new LinkedList<>();
         for (int i = 0; i < stops.length(); i++) {
             out.add(parseStop(stops.getJSONObject(i), null));
         }
@@ -648,7 +649,7 @@ public abstract class DbMovasProvider extends DbProvider {
 
     private int[] parseCapacity(final JSONObject e) throws JSONException {
         final JSONArray auslastungen = e.optJSONArray("auslastungsInfos");
-        int[] out = { 0, 0 };
+        final int[] out = { 0, 0 };
         if (auslastungen != null) {
             for (int i = 0; i < auslastungen.length(); i++) {
                 final JSONObject auslastung = auslastungen.getJSONObject(i);
@@ -714,7 +715,7 @@ public abstract class DbMovasProvider extends DbProvider {
             final JSONArray attributNotizen = journey.optJSONArray("attributNotizen");
             if (attributNotizen != null) {
                 for (int iAttr = 0; iAttr < attributNotizen.length(); ++iAttr) {
-                    JSONObject attr = attributNotizen.getJSONObject(iAttr);
+                    final JSONObject attr = attributNotizen.getJSONObject(iAttr);
                     if ("OP".equals(attr.get("key"))) {
                         operator = attr.getString("text");
                         break;
@@ -774,7 +775,7 @@ public abstract class DbMovasProvider extends DbProvider {
     }
 
     private List<Fare> parseFares(final JSONObject verbindungParent) {
-        List<Fare> fares = new ArrayList<>();
+        final List<Fare> fares = new ArrayList<>();
         final Optional<JSONObject> ab = Optional.ofNullable(verbindungParent.optJSONObject("angebote"))
                 .map(angebote -> angebote.optJSONObject("preise"))
                 .map(preise -> preise.optJSONObject("gesamt"))
@@ -791,7 +792,7 @@ public abstract class DbMovasProvider extends DbProvider {
         return fares;
     }
 
-    private String parseErrorCode(AbstractHttpException e) {
+    private String parseErrorCode(final AbstractHttpException e) {
         String code = null;
         try {
             final JSONObject res = new JSONObject(e.getBodyPeek().toString());
@@ -981,7 +982,7 @@ public abstract class DbMovasProvider extends DbProvider {
             }
             final Trip trip = parseTrip(res, tripRef.from, tripRef.via, tripRef.to, tripRef.limitToDticket, tripRef.hasDticket);
             return new QueryTripsResult(this.resultHeader, null, tripRef.from, tripRef.via, tripRef.to, null, Collections.singletonList(trip));
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if ("MDA-AK-MSG-1001".equals(code)) {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.INVALID_DATE);
@@ -989,7 +990,7 @@ public abstract class DbMovasProvider extends DbProvider {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1046,9 +1047,9 @@ public abstract class DbMovasProvider extends DbProvider {
             final JSONArray locs = new JSONArray(page);
             final List<Location> locations = parseLocations(locs);
             return new NearbyLocationsResult(this.resultHeader, locations);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.INVALID_ID);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1123,9 +1124,9 @@ public abstract class DbMovasProvider extends DbProvider {
             for (final StationDepartures stationDepartures : result.stationDepartures)
                 Collections.sort(stationDepartures.departures, Departure.TIME_COMPARATOR);
             return result;
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.INVALID_STATION);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1133,8 +1134,8 @@ public abstract class DbMovasProvider extends DbProvider {
     }
 
     @Override
-    public SuggestLocationsResult suggestLocations(CharSequence constraint, @Nullable Set<LocationType> types,
-            int maxLocations)
+    public SuggestLocationsResult suggestLocations(final CharSequence constraint, @Nullable final Set<LocationType> types,
+                                                   int maxLocations)
             throws IOException {
         if (maxLocations == 0)
             maxLocations = DEFAULT_MAX_LOCATIONS;
@@ -1159,8 +1160,8 @@ public abstract class DbMovasProvider extends DbProvider {
                 }
             }
             return new SuggestLocationsResult(this.resultHeader, locations);
-        } catch (IOException | RuntimeException e) {
-            e.printStackTrace();
+        } catch (final IOException | RuntimeException e) {
+            log.error("error getting locations", e);
             return new SuggestLocationsResult(this.resultHeader, SuggestLocationsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1227,13 +1228,13 @@ public abstract class DbMovasProvider extends DbProvider {
             final JSONObject res = new JSONObject(page);
             final Trip.Public leg = parseJourney(res, journeyRef);
             return new QueryJourneyResult(this.resultHeader, url.toString(), journeyRef, leg);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if (code != null) {
                 return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.NO_JOURNEY);
             }
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);

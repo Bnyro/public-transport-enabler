@@ -378,7 +378,8 @@ public abstract class DbWebProvider extends DbProvider {
         Point coord = null;
         try {
             coord = Point.from1E6(Integer.parseInt(props.get("Y")), Integer.parseInt(props.get("X")));
-        } catch (Exception e) {
+        } catch (final Exception e) {
+            // ignore
         }
         return new Location(
                 Optional.ofNullable(ID_LOCATION_TYPE_MAP.get(props.get("A"))).orElse(LocationType.ANY),
@@ -402,7 +403,7 @@ public abstract class DbWebProvider extends DbProvider {
             return null;
         final Set<Product> out = new HashSet<>();
         for (int iProd = 0; iProd < products.length(); iProd++) {
-            String prodStr = products.optString(iProd, null);
+            final String prodStr = products.optString(iProd, null);
             final Product prod = PRODUCTS_MAP.get(prodStr);
             if (prod != null) {
                 out.add(prod);
@@ -441,7 +442,7 @@ public abstract class DbWebProvider extends DbProvider {
         return new Location(type, id, coord, placeAndName[0], placeAndName[1], products, url);
     }
 
-    private Location parseLocation(JSONObject loc) {
+    private Location parseLocation(final JSONObject loc) {
         if (loc == null)
             return null;
         final String lidStr = loc.optString("id", null);
@@ -449,8 +450,8 @@ public abstract class DbWebProvider extends DbProvider {
         final String id = lid.type == LocationType.STATION
                 ? Optional.ofNullable(loc.optString("extId", null)).orElse(lid.id)
                 : lidStr;
-        Point coord;
-        double latitude = loc.optDouble("lat");
+        final Point coord;
+        final double latitude = loc.optDouble("lat");
         if (!Double.isNaN(latitude)) {
             coord = Point.fromDouble(latitude, loc.optDouble("lon"));
         } else {
@@ -536,10 +537,10 @@ public abstract class DbWebProvider extends DbProvider {
     }
 
     static class x {
-        x(int i) {}
+        x(final int i) {}
     }
 
-    private static Set<String> bicycleAttributes = new HashSet<String>() {
+    private static final Set<String> bicycleAttributes = new HashSet<String>() {
         private static final long serialVersionUID = 3738440155820969289L;
 
         {
@@ -550,7 +551,7 @@ public abstract class DbWebProvider extends DbProvider {
         }
     };
 
-    private static Set<String> wheelChairAttributes = new HashSet<String>() {
+    private static final Set<String> wheelChairAttributes = new HashSet<String>() {
         private static final long serialVersionUID = 3738440155820969289L;
 
         {
@@ -561,17 +562,14 @@ public abstract class DbWebProvider extends DbProvider {
     private Line parseLine(final JSONObject verkehrsmittel) throws JSONException {
         // TODO attrs, messages
         final Product product = PRODUCTS_MAP.get(verkehrsmittel.optString("produktGattung", null));
-        String shortName = verkehrsmittel.optString("mittelText", null);
+        final String shortName = verkehrsmittel.optString("mittelText", null);
         final String name = Optional.ofNullable(verkehrsmittel.optString("langText", null)).orElse(shortName);
-        if (shortName != null && (product == Product.BUS || product == Product.TRAM)) {
-            shortName = shortName.replaceAll("^[A-Za-z]+ ", "");
-        }
         String operator = null;
         final Set<Line.Attr> lineAttrs = new HashSet<>();
         final JSONArray attributNotizen = verkehrsmittel.optJSONArray("zugattribute");
         if (attributNotizen != null) {
             for (int iAttr = 0; iAttr < attributNotizen.length(); ++iAttr) {
-                JSONObject attr = attributNotizen.getJSONObject(iAttr);
+                final JSONObject attr = attributNotizen.getJSONObject(iAttr);
                 final String key = attr.getString("key");
                 if ("BEF".equals(key)) {
                     operator = attr.getString("value");
@@ -586,14 +584,14 @@ public abstract class DbWebProvider extends DbProvider {
                 null,
                 operator,
                 product,
-                shortName,
+                getSaneLineShortName(product, shortName),
                 name,
                 lineStyle(styles, operator, product, name),
                 lineAttrs,
                 null);
     }
 
-    private boolean parseCancelled(JSONObject stop) throws JSONException {
+    private boolean parseCancelled(final JSONObject stop) throws JSONException {
         final JSONArray notices = stop.optJSONArray("risNotizen");
         if (notices != null) {
             for (int iNotice = 0; iNotice < notices.length(); iNotice++) {
@@ -613,7 +611,7 @@ public abstract class DbWebProvider extends DbProvider {
         final Position gleis = parsePosition(stop.optString("gleis", null));
         final Position ezGleis = parsePosition(stop.optString("ezGleis", null));
         final boolean cancelled = parseCancelled(stop);
-        Location stopLocation = parseLocation(stop);
+        final Location stopLocation = parseLocation(stop);
         return new Stop(
                 stopLocation != null && stopLocation.id != null ? stopLocation : fallbackLocation,
                 parseIso8601NoOffset(stop.optString("ankunftsZeitpunkt", null)),
@@ -627,7 +625,7 @@ public abstract class DbWebProvider extends DbProvider {
     private List<Stop> parseStops(final JSONArray stops) throws JSONException {
         if (stops == null)
             return null;
-        List<Stop> out = new LinkedList<>();
+        final List<Stop> out = new LinkedList<>();
         for (int iStop = 0; iStop < stops.length(); iStop++) {
             out.add(parseStop(stops.getJSONObject(iStop), null));
         }
@@ -636,7 +634,7 @@ public abstract class DbWebProvider extends DbProvider {
 
     private int[] parseCapacity(final JSONObject verbindung) throws JSONException {
         final JSONArray auslastungen = verbindung.optJSONArray("auslastungsMeldungen");
-        int[] out = { 0, 0 };
+        final int[] out = { 0, 0 };
         if (auslastungen != null) {
             for (int i = 0; i < auslastungen.length(); i++) {
                 final JSONObject auslastung = auslastungen.getJSONObject(i);
@@ -759,7 +757,7 @@ public abstract class DbWebProvider extends DbProvider {
     }
 
     private List<Fare> parseFares(final JSONObject verbindung) {
-        List<Fare> fares = new ArrayList<>();
+        final List<Fare> fares = new ArrayList<>();
         final Optional<JSONObject> angebotsPreis = Optional.ofNullable(verbindung.optJSONObject("angebotsPreis"));
         if (angebotsPreis.isPresent()) {
             fares.add(new Fare(
@@ -773,7 +771,7 @@ public abstract class DbWebProvider extends DbProvider {
         return fares;
     }
 
-    private String parseErrorCode(AbstractHttpException e) {
+    private String parseErrorCode(final AbstractHttpException e) {
         String code = null;
         try {
             final JSONObject res = new JSONObject(e.getBodyPeek().toString());
@@ -934,12 +932,12 @@ public abstract class DbWebProvider extends DbProvider {
         try {
             page = doRequest(url, request);
             final JSONObject res = new JSONObject(page);
-            Optional<JSONObject> verbindungReference = Optional.ofNullable(res.optJSONObject("verbindungReference"));
+            final Optional<JSONObject> verbindungReference = Optional.ofNullable(res.optJSONObject("verbindungReference"));
             final DbWebApiContext apiContext = new DbWebApiContext(from, via, to, time, dep, products, direct, bike, minUmstiegszeit,
                     verbindungReference.map(v -> v.optString("later", null)).orElse(null),
                     verbindungReference.map(v -> v.optString("earlier", null)).orElse(null));
             return parseTrips(res, apiContext, from, via, to, limitToDticket, hasDticket);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if ("MDA-AK-MSG-1001".equals(code)) {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.INVALID_DATE);
@@ -947,7 +945,7 @@ public abstract class DbWebProvider extends DbProvider {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -969,7 +967,7 @@ public abstract class DbWebProvider extends DbProvider {
             page = doRequest(url, request);
             final JSONObject res = new JSONObject(page);
             return parseTrips(res, null, tripRef.from, tripRef.via, tripRef.to, tripRef.limitToDticket, tripRef.hasDticket);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if ("MDA-AK-MSG-1001".equals(code)) {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.INVALID_DATE);
@@ -977,7 +975,7 @@ public abstract class DbWebProvider extends DbProvider {
                 return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.NO_TRIPS);
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1017,9 +1015,9 @@ public abstract class DbWebProvider extends DbProvider {
             final JSONArray locs = new JSONArray(page);
             final List<Location> locations = parseLocations(locs);
             return new NearbyLocationsResult(this.resultHeader, locations);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.INVALID_ID);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1120,9 +1118,9 @@ public abstract class DbWebProvider extends DbProvider {
             for (final StationDepartures stationDepartures : result.stationDepartures)
                 Collections.sort(stationDepartures.departures, Departure.TIME_COMPARATOR);
             return result;
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.INVALID_STATION);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1131,8 +1129,8 @@ public abstract class DbWebProvider extends DbProvider {
 
     @Override
     public SuggestLocationsResult suggestLocations(
-            CharSequence constraint,
-            @Nullable Set<LocationType> types,
+            final CharSequence constraint,
+            @Nullable final Set<LocationType> types,
             int maxLocations)
             throws IOException {
         if (maxLocations == 0)
@@ -1146,7 +1144,7 @@ public abstract class DbWebProvider extends DbProvider {
             haveAddress = true;
             havePOI = true;
         } else {
-            for (LocationType type : types) {
+            for (final LocationType type : types) {
                 switch (type) {
                     case STATION: haveStation = true; break;
                     case ADDRESS: haveAddress = true; break;
@@ -1181,7 +1179,7 @@ public abstract class DbWebProvider extends DbProvider {
                 }
             }
             return new SuggestLocationsResult(this.resultHeader, locations);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             log.error("error getting locations", e);
             return new SuggestLocationsResult(this.resultHeader, SuggestLocationsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
@@ -1245,13 +1243,13 @@ public abstract class DbWebProvider extends DbProvider {
             final JSONObject res = new JSONObject(page);
             final Trip.Public leg = parseJourney(res, journeyRef);
             return new QueryJourneyResult(this.resultHeader, url.toString(), journeyRef, leg);
-        } catch (InternalErrorException | BlockedException e) {
+        } catch (final InternalErrorException | BlockedException e) {
             final String code = parseErrorCode(e);
             if (code != null) {
                 return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.NO_JOURNEY);
             }
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
-        } catch (IOException | RuntimeException e) {
+        } catch (final IOException | RuntimeException e) {
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1408,7 +1406,7 @@ public abstract class DbWebProvider extends DbProvider {
         public DbWebTripShare shareTrip(
                 final HttpClient httpClient,
                 final Trip trip,
-                final TripRef simplifiedTripRef, String recon) throws IOException {
+                final TripRef simplifiedTripRef, final String recon) throws IOException {
             final String request = "{\"hinfahrtDatum\":\"" + ISO_DATE_TIME_UTC_FORMAT.format(trip.getFirstDepartureTime()) + "\"," //
                     + "\"hinfahrtRecon\": \"" + recon + "\"," //
                     + "\"startOrt\": \"" + simplifiedTripRef.from.uniqueShortName() + "\"," //
@@ -1422,9 +1420,9 @@ public abstract class DbWebProvider extends DbProvider {
                 final JSONObject res = new JSONObject(page);
                 final String vbid = res.optString("vbid");
                 return new DbWebTripShare(simplifiedTripRef, vbid);
-            } catch (InternalErrorException | BlockedException e) {
+            } catch (final InternalErrorException | BlockedException e) {
                 return null;
-            } catch (IOException | RuntimeException e) {
+            } catch (final IOException | RuntimeException e) {
                 return null;
             } catch (final JSONException x) {
                 throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1443,9 +1441,9 @@ public abstract class DbWebProvider extends DbProvider {
                 page = DbWebProvider.doRequest(httpClient, null, url, null, null);
                 final JSONObject res = new JSONObject(page);
                 return res.optString("hinfahrtRecon");
-            } catch (InternalErrorException | BlockedException e) {
+            } catch (final InternalErrorException | BlockedException e) {
                 return null;
-            } catch (IOException | RuntimeException e) {
+            } catch (final IOException | RuntimeException e) {
                 return null;
             } catch (final JSONException x) {
                 throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
