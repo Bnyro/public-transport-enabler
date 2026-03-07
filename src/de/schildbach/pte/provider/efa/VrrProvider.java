@@ -93,8 +93,12 @@ public class VrrProvider extends AbstractEfaProvider {
             if (trainType == null && "SEV B".equals(trainNum))
                 return new Line(id, network, Product.BUS, trainNum);
         } else if ("11".equals(mot)) {
-            // Wuppertaler Schwebebahn & SkyTrain D'dorf
+            // Wuppertaler Schwebebahn
             if ("Schwebebahn".equals(trainName) || (longName != null && longName.startsWith("Schwebebahn")))
+                return new Line(id, network, Product.CABLECAR, symbol);
+
+            // SkyTrain D'dorf
+            if ("SkyTrain SkyT".equals(trainName) || (longName != null && longName.startsWith("SkyTrain SkyT")))
                 return new Line(id, network, Product.CABLECAR, name);
 
             // H-Bahn TU Dortmund
