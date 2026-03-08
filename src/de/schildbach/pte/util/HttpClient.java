@@ -106,7 +106,7 @@ public final class HttpClient {
     private static final Set<Integer> RESPONSE_CODES_BLOCKED =
             Stream.of(HttpURLConnection.HTTP_BAD_REQUEST, HttpURLConnection.HTTP_UNAUTHORIZED,
                             HttpURLConnection.HTTP_FORBIDDEN, HttpURLConnection.HTTP_NOT_ACCEPTABLE,
-                            HttpURLConnection.HTTP_UNAVAILABLE)
+                            HttpURLConnection.HTTP_UNAVAILABLE, 429)
                     .collect(Collectors.toSet());
     private static final Set<Integer> RESPONSE_CODES_NOT_FOUND =
             Stream.of(HttpURLConnection.HTTP_NOT_FOUND)
@@ -247,11 +247,7 @@ public final class HttpClient {
                 public Response intercept(final Chain chain) throws IOException {
                     final Request request = chain.request();
                     Response response = null;
-                    try {
-                        response = chain.proceed(request);
-                    } catch (final IOException x) {
-                        throw x;
-                    }
+                    response = chain.proceed(request);
                     if (response.isSuccessful() && response.peekBody(1).bytes().length == 0) {
                         log.info("Got empty response, retrying {}", request.url());
                         response.close();
@@ -356,7 +352,7 @@ public final class HttpClient {
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String postRequest,
             final String requestContentType,
-            final String referer, String origin) throws IOException {
+            final String referer, final String origin) throws IOException {
         requireNonNull(callback);
         requireNonNull(url);
 
@@ -397,8 +393,7 @@ public final class HttpClient {
                 // save cookie
                 if (sessionCookieName != null) {
                     final List<Cookie> cookies = Cookie.parseAll(url, response.headers());
-                    for (final Iterator<Cookie> i = cookies.iterator(); i.hasNext();) {
-                        final Cookie cookie = i.next();
+                    for (final Cookie cookie : cookies) {
                         if (cookie.name().equals(sessionCookieName)) {
                             this.sessionCookie = cookie;
                             break;
