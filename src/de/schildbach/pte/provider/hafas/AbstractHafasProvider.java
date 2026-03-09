@@ -130,11 +130,11 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
 
     protected final Set<Product> intToProducts(final int productsInt) {
         final int allProductsInt = allProductsInt();
-        checkArgument(productsInt <= allProductsInt, () ->
-                "value " + productsInt + " cannot be greater than " + allProductsInt);
+//        checkArgument(productsInt <= allProductsInt, () ->
+//                "value " + productsInt + " cannot be greater than " + allProductsInt);
 
         final Set<Product> products = EnumSet.noneOf(Product.class);
-        int value = productsInt;
+        int value = productsInt & allProductsInt;
         for (int i = productsMap.length - 1; i >= 0; i--) {
             final int v = 1 << i;
             if (value >= v) {

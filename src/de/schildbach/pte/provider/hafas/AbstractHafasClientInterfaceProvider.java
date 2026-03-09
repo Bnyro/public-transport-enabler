@@ -1726,7 +1726,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         if (lid == null)
             return null;
         final String[] nameValueStrings = lid.split("@");
-        if (nameValueStrings.length == 0)
+        if (nameValueStrings.length < 2)
             return lid;
         final StringBuilder validLid = new StringBuilder();
         for (String nameValueString : nameValueStrings) {
@@ -1766,7 +1766,9 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final String nameS = prod.optString("nameS", null);
             final String number = prod.optString("number", null);
             final String addName = useAddName ? prod.optString("addName", null) : null;
-            final int icoIndex = prod.getInt("icoX");
+            final int icoIndex = prod.optInt("icoX", -1);
+            if (icoIndex < 0)
+                log.debug("x");
             final Style style = styles.get(icoIndex);
             final int oprIndex = prod.optInt("oprX", -1);
             final String operator = (oprIndex != -1 && operators != null) ? operators.get(oprIndex) : null;
@@ -1833,7 +1835,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
 
         for (int i = 0; i < len; i++) {
             final JSONObject poly = polyList.getJSONObject(i);
-            checkState(poly.getBoolean("delta"));
+            // checkState(poly.getBoolean("delta"));
             polylines.add(poly.getString("crdEncYX"));
         }
         return polylines;
