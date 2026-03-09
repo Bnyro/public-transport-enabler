@@ -1776,7 +1776,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final JSONObject prodCtx = prod.optJSONObject("prodCtx");
             if (prodCtx != null) {
                 id = prodCtx.optString("lineId", null);
-                ctxNum = prodCtx.optString("num", null);
+                ctxNum = prodCtx.optString("matchId", prodCtx.optString("num", null));
             } else {
                 id = null;
                 ctxNum = null;
@@ -1784,7 +1784,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final Product product = cls != -1 ? intToProduct(cls) : null;
             lines.add(newLine(
                     id, operator, product,
-                    !name.isEmpty() ? name : null, nameS,
+                    !name.isEmpty() ? name : null,
+                    nameS,
                     ctxNum != null ? ctxNum : number,
                     addName,
                     style));
