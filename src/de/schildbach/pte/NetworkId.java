@@ -28,6 +28,7 @@ import de.schildbach.pte.provider.db.DbHafasProvider;
 import de.schildbach.pte.provider.db.DbMovasProvider;
 import de.schildbach.pte.provider.db.DbProvider;
 import de.schildbach.pte.provider.db.DbWebProvider;
+import de.schildbach.pte.provider.hafas.UestraProvider;
 import de.schildbach.pte.provider.hafas.austria.StvProvider;
 import de.schildbach.pte.provider.hafas.austria.VkgProvider;
 import de.schildbach.pte.provider.other.DeutschlandTicketProvider;
@@ -114,7 +115,8 @@ public enum NetworkId {
     VVM(Descriptor.from(VvmProvider.class, "de-DE", "Schwaben;Mittelschwaben;Krumbach;Günzburg;Memmingen")),
     VMV(Descriptor.from(VmvProvider.class, "de-DE", "Mecklenburg-Vorpommern;Schwerin")),
     SH(Descriptor.from(ShProvider.class, "de-DE", "Schleswig-Holstein;Kiel;Lübeck;Hamburg")),
-    GVH(Descriptor.from(GvhProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg")),
+    GVH(Descriptor.from(GvhProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg", State.deprecated)), // GVH is Uestra now
+    UESTRA(Descriptor.from(UestraProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg")),
     BSVAG(Descriptor.from(BsvagProvider.class, "de-DE", "Braunschweig;Wolfsburg")),
     VBN(Descriptor.from(VbnProvider.class, "de-DE", "Niedersachsen;Hamburg;Bremen;Bremerhaven;Oldenburg (Oldenburg);Osnabrück;Göttingen;Rostock")),
     NASA(Descriptor.from(NasaProvider.class, "de-DE", "Sachsen;Leipzig;Sachsen-Anhalt;Magdeburg;Halle")),
