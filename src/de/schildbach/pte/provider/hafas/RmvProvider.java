@@ -379,7 +379,7 @@ public class RmvProvider extends AbstractHafasClientInterfaceProvider {
         STYLES.put("Hanauer Straßenbahn GmbH|B4", new Style(RMV_SHAPE, Style.rgb(135, 84, 0), Style.WHITE));
         STYLES.put("Hanauer Straßenbahn GmbH|B5", new Style(RMV_SHAPE, Style.rgb(244, 130, 50), Style.WHITE));
         STYLES.put("Hanauer Straßenbahn GmbH|B6", new Style(RMV_SHAPE, Style.rgb(135, 62, 151), Style.WHITE));
-        STYLES.put("Hanauer Straßenbahn GmbH|B6S", new Style(RMV_SHAPE, Style.rgb(135, 62, 151), Style.WHITE));
+        STYLES.put("Hanauer Straßenbahn GmbH|B6 S", new Style(RMV_SHAPE, Style.rgb(135, 62, 151), Style.WHITE));
         STYLES.put("Hanauer Straßenbahn GmbH|B7", new Style(RMV_SHAPE, Style.rgb(0, 140, 208), Style.WHITE));
         STYLES.put("Hanauer Straßenbahn GmbH|B8", new Style(RMV_SHAPE, Style.rgb(215, 12, 140), Style.WHITE));
         STYLES.put("Hanauer Straßenbahn GmbH|B9", new Style(RMV_SHAPE, Style.rgb(239, 62, 34), Style.WHITE));
