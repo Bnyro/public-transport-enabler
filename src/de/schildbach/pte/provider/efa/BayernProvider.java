@@ -74,6 +74,14 @@ public class BayernProvider extends AbstractEfaProvider {
     }
 
     @Override
+    protected String normalizeLocationName(final String name) {
+        if (name == null || name.isEmpty())
+            return null;
+
+        return name.replaceFirst("^[^,]*, ", "");
+    }
+
+    @Override
     protected Line parseLine(final @Nullable String id, final @Nullable String network, final @Nullable String mot,
             final @Nullable String symbol, final @Nullable String name, final @Nullable String longName,
             final @Nullable String trainType, final @Nullable String trainNum, final @Nullable String trainName) {
