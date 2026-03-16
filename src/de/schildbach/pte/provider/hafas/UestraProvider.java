@@ -39,6 +39,7 @@ public class UestraProvider extends AbstractHafasClientInterfaceProvider {
             Product.BUS,
             Product.SUBWAY,
             Product.ON_DEMAND,
+            Product.TRAM,
     };
     private static final String DEFAULT_API_CLIENT = "{\"id\":\"HAFAS\",\"type\":\"WEB\",\"name\":\"webapp\",\"l\":\"vs_webapp\"}";
     private static final String WEBAPP_CONFIG_URL = "https://gvh.hafas.de/config/webapp.config.json";
