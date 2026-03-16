@@ -1412,7 +1412,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return new ResultHeader(network, SERVER_PRODUCT, serverVersion, null, timestamp.getTime(), null);
     }
 
-    private static final Pattern P_JSON_TIME = Pattern.compile("(\\d{2})?(\\d{2})(\\d{2})(\\d{2})");
+    private static final Pattern P_JSON_TIME = Pattern.compile("(\\d{2,8})?(\\d{2})(\\d{2})(\\d{2})");
 
     private PTDate parseJsonTime(final Calendar calendar, final Date baseDate, final CharSequence str) {
         if (str == null)
@@ -1767,9 +1767,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final String number = prod.optString("number", null);
             final String addName = useAddName ? prod.optString("addName", null) : null;
             final int icoIndex = prod.optInt("icoX", -1);
-            if (icoIndex < 0)
-                log.debug("x");
-            final Style style = styles.get(icoIndex);
+            final Style style = icoIndex >= 0 ? styles.get(icoIndex) : null;
             final int oprIndex = prod.optInt("oprX", -1);
             final String operator = (oprIndex != -1 && operators != null) ? operators.get(oprIndex) : null;
             final int cls = prod.optInt("cls", -1);
