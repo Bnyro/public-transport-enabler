@@ -24,7 +24,7 @@ import de.schildbach.pte.dto.Product;
 import okhttp3.HttpUrl;
 
 /**
- * Provider implementation for the Rhein-Main-Verkehrsverbund (Germany).
+ * Provider implementation for the GVH / Üstra Hannover (Germany).
  */
 public class UestraProvider extends AbstractHafasClientInterfaceProvider {
     private static final HttpUrl API_BASE = HttpUrl.parse("https://gvh.hafas.de/");
