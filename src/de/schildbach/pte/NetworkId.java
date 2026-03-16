@@ -115,7 +115,7 @@ public enum NetworkId {
     VVM(Descriptor.from(VvmProvider.class, "de-DE", "Schwaben;Mittelschwaben;Krumbach;Günzburg;Memmingen")),
     VMV(Descriptor.from(VmvProvider.class, "de-DE", "Mecklenburg-Vorpommern;Schwerin")),
     SH(Descriptor.from(ShProvider.class, "de-DE", "Schleswig-Holstein;Kiel;Lübeck;Hamburg")),
-    GVH(Descriptor.from(GvhProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg", State.deprecated)), // GVH is Uestra now
+    GVH(Descriptor.from(GvhProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg")), // GVH is Uestra now
     UESTRA(Descriptor.from(UestraProvider.class, "de-DE", "Niedersachsen;Hannover;Hamburg")),
     BSVAG(Descriptor.from(BsvagProvider.class, "de-DE", "Braunschweig;Wolfsburg")),
     VBN(Descriptor.from(VbnProvider.class, "de-DE", "Niedersachsen;Hamburg;Bremen;Bremerhaven;Oldenburg (Oldenburg);Osnabrück;Göttingen;Rostock")),
