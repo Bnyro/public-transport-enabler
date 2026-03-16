@@ -28,6 +28,7 @@ import de.schildbach.pte.provider.db.DbHafasProvider;
 import de.schildbach.pte.provider.db.DbMovasProvider;
 import de.schildbach.pte.provider.db.DbProvider;
 import de.schildbach.pte.provider.db.DbWebProvider;
+import de.schildbach.pte.provider.hafas.KvbProvider;
 import de.schildbach.pte.provider.hafas.UestraProvider;
 import de.schildbach.pte.provider.hafas.austria.StvProvider;
 import de.schildbach.pte.provider.hafas.austria.VkgProvider;
@@ -125,6 +126,8 @@ public enum NetworkId {
     SAARVV(Descriptor.from(SaarVVProvider.class, "de-DE", "Saarland;Saarbrücken")),
     VRR(Descriptor.from(VrrProvider.class, "de-DE", "Nordrhein-Westfalen;Essen;Dortmund;Düsseldorf;Münster;Paderborn;Höxter;Bielefeld")),
     VRS(Descriptor.from(VrsProvider.class, "de-DE", "Köln;Bonn",
+            new Point[] { Point.from1E6(50937531, 6960279) })),
+    KVB(Descriptor.from(KvbProvider.class, "de-DE", "Köln;Bonn",
             new Point[] { Point.from1E6(50937531, 6960279) })),
     AVV_AACHEN(Descriptor.from(AvvAachenProvider.class, "de-DE", "Aachen")),
     MVG(Descriptor.from(MvgProvider.class, "de-DE", "Märkischer Kreis;Lüdenscheid")),
