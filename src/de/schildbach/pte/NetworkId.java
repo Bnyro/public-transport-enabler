@@ -23,12 +23,15 @@ import de.schildbach.pte.provider.hafas.AvvAugsburgProvider;
 import de.schildbach.pte.provider.hafas.BartProvider;
 import de.schildbach.pte.provider.efa.BayernProvider;
 import de.schildbach.pte.provider.efa.BsvagProvider;
+import de.schildbach.pte.provider.hafas.BlsProvider;
 import de.schildbach.pte.provider.hafas.BvgProvider;
 import de.schildbach.pte.provider.db.DbHafasProvider;
 import de.schildbach.pte.provider.db.DbMovasProvider;
 import de.schildbach.pte.provider.db.DbProvider;
 import de.schildbach.pte.provider.db.DbWebProvider;
 import de.schildbach.pte.provider.hafas.KvbProvider;
+import de.schildbach.pte.provider.hafas.RivierProvider;
+import de.schildbach.pte.provider.hafas.TpgProvider;
 import de.schildbach.pte.provider.hafas.UestraProvider;
 import de.schildbach.pte.provider.hafas.austria.StvProvider;
 import de.schildbach.pte.provider.hafas.austria.VkgProvider;
@@ -155,9 +158,12 @@ public enum NetworkId {
     // Switzerland
     VBL(Descriptor.from(VblProvider.class, "de-CH", "Luzern", State.deprecated)),
     ZVV(Descriptor.from(ZvvProvider.class, "de-CH", "Zürich")),
+    BLS(Descriptor.from(BlsProvider.class, "de-CH", "Bern")),
+    TPG(Descriptor.from(TpgProvider.class, "de-CH", "Genève")),
 
     // Netherlands
     NS(Descriptor.from(NsProvider.class, "nl-NL", "NL;Amsterdam", State.alpha)),
+    RIVIER(Descriptor.from(RivierProvider.class, "nl-NL", "NL;Amsterdam", State.beta)),
     NEGENTWEE(Descriptor.from(NegentweeProvider.class, "nl-NL", "NL;Amsterdam", State.disabled)),
 
     // Denmark

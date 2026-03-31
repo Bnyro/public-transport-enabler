@@ -1360,7 +1360,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     }
 
     private HttpUrl requestUrl(final String body) {
-        final HttpUrl.Builder url = apiBase.newBuilder().addPathSegment(apiEndpoint);
+        final HttpUrl.Builder url = apiBase.newBuilder().addPathSegments(apiEndpoint);
         addSaltToUrl(url, body);
         return url.build();
     }
