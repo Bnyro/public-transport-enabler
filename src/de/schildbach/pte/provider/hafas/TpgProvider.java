@@ -39,7 +39,11 @@ public class TpgProvider extends AbstractHafasClientInterfaceProvider {
             Product.BUS,
             Product.CABLECAR,
             Product.BUS,
-            Product.TRAM
+            Product.TRAM,
+            Product.HIGH_SPEED_TRAIN,
+            Product.HIGH_SPEED_TRAIN,
+            Product.HIGH_SPEED_TRAIN,
+            Product.HIGH_SPEED_TRAIN,
     };
     private static final String DEFAULT_API_CLIENT = "{\"id\":\"HAFAS\",\"type\":\"WEB\",\"name\":\"webapp\",\"l\":\"vs_webapp\"}";
     private static final String WEBAPP_CONFIG_URL = "https://tpg.hafas.cloud/config/webapp.config.json";
