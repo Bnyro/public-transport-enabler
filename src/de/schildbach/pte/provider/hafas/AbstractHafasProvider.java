@@ -105,8 +105,13 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
 
     protected final Product intToProduct(final int productInt) {
         final int allProductsInt = allProductsInt();
-        checkArgument(productInt <= allProductsInt, () ->
-                "value " + productInt + " cannot be greater than " + allProductsInt);
+        try {
+            checkArgument(productInt <= allProductsInt, () ->
+                    "value " + productInt + " cannot be greater than " + allProductsInt);
+        } catch (final Exception e) {
+            log.error("unknown product int {}", productInt, e);
+            return Product.UNKNOWN;
+        }
 
         int value = productInt;
         Product product = null;
