@@ -1445,7 +1445,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             throws JSONException {
         final JSONObject pltf = json.optJSONObject(pltfName);
         if (pltf != null)
-            return new Position(pltf.getString("txt")); // TODO type
+            return parsePosition(pltf.getString("txt")); // TODO type
         final String platf = json.optString(platfName, null);
         if (platf != null)
             return normalizePosition(platf);
