@@ -917,7 +917,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                     return new QueryTripsResult(header, QueryTripsResult.Status.INVALID_DATE);
                 if ("H9360".equals(plainErr)) // Date outside of the timetable period.
                     return new QueryTripsResult(header, QueryTripsResult.Status.INVALID_DATE);
-                if ("H9380".equals(plainErr)) // Departure/Arrival/Intermediate or equivalent stations def'd more
+                if ("H9380".equals(plainErr) || "H9381".equals(plainErr)) // Departure/Arrival/Intermediate or equivalent stations def'd more
                     // than once.
                     return new QueryTripsResult(header, QueryTripsResult.Status.TOO_CLOSE);
                 if ("FAIL".equals(plainErr))
