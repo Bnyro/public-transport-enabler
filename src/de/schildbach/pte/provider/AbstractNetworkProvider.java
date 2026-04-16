@@ -91,7 +91,7 @@ public abstract class AbstractNetworkProvider extends AbstractLocationSearchProv
             @Nullable final Accessibility accessibility, @Nullable final Set<TripFlag> flags, final boolean loadPath) throws IOException {
         return queryTrips(
                 from, via, to, date, dep,
-                new TripOptions(products, optimize, walkSpeed, null, accessibility, flags),
+                new TripOptions(products, optimize, walkSpeed, null, null, accessibility, flags),
                 loadPath);
     }
 

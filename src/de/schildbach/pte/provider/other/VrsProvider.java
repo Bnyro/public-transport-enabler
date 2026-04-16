@@ -984,7 +984,7 @@ public class VrsProvider extends AbstractNetworkProvider {
             final QueryTripsContext context, final boolean later,
             final boolean loadPath) throws IOException {
         final Context ctx = (Context) context;
-        final TripOptions options = new TripOptions(ctx.products, null, null, null, null, null);
+        final TripOptions options = new TripOptions(ctx.products, null, null, null, null, null, null);
         if (later) {
             return queryTrips(ctx.from, ctx.via, ctx.to, ctx.getLastDeparture(), true, options, loadPath);
         } else {

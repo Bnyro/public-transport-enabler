@@ -300,6 +300,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 tripFlags != null && tripFlags.contains(TripFlag.BIKE),
                 options != null ? options.products : null,
                 options != null ? options.walkSpeed : null,
+                options != null ? options.maxWalkDistanceMeters : null,
                 options == null || options.minTransferTimeMinutes == null ? null
                         : getApplicableMinTransferTime(options.minTransferTimeMinutes),
                 null,
@@ -314,7 +315,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return jsonTripSearch(jsonContext.from, jsonContext.via, jsonContext.to, jsonContext.date, jsonContext.dep,
                 jsonContext.direct, jsonContext.bike,
                 jsonContext.products, jsonContext.walkSpeed,
-                jsonContext.minTransferTimeMinutes,
+                jsonContext.maxWalkDistanceMeters, jsonContext.minTransferTimeMinutes,
                 later ? jsonContext.laterContext : jsonContext.earlierContext,
                 loadPath);
     }
@@ -857,6 +858,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final Date time, final boolean dep,
             final boolean direct, final boolean bike,
             final Set<Product> products, final WalkSpeed walkSpeed,
+            final Integer maxWalkDistanceMeters,
             final Integer minTransferTimeMinutes) throws IOException {
         final Calendar c = new GregorianCalendar(timeZone);
         c.setTime(time);
@@ -1128,7 +1130,8 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             }
 
             final JsonContext context = new JsonContext(
-                    from, via, to, time, dep, direct, bike, products, walkSpeed, minTransferTimeMinutes,
+                    from, via, to, time, dep, direct, bike, products, walkSpeed,
+                    maxWalkDistanceMeters, minTransferTimeMinutes,
                     res.optString("outCtxScrF"), res.optString("outCtxScrB"));
             return new QueryTripsResult(header, null, from, null, to, context, trips);
         } catch (final JSONException x) {
@@ -1145,8 +1148,11 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final Date time, final boolean dep,
             final boolean direct,
             final boolean bike,
-            final @Nullable Set<Product> products, final @Nullable WalkSpeed walkSpeed,
-            final @Nullable Integer minTransferTimeMinutes, final @Nullable String moreContext,
+            final @Nullable Set<Product> products,
+            final @Nullable WalkSpeed walkSpeed,
+            final @Nullable Integer maxWalkDistanceMeters,
+            final @Nullable Integer minTransferTimeMinutes,
+            final @Nullable String moreContext,
             final boolean loadPath) throws IOException {
         from = jsonTripSearchIdentify(from);
         if (from == null)
@@ -1182,7 +1188,6 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                     + additionalJnyFltr + "],";
             }
         }
-        final String meta = "foot_speed_" + (walkSpeed != null ? walkSpeed : WalkSpeed.NORMAL).name().toLowerCase();
         final String jsonContext = moreContext != null ? "\"ctxScr\":" + JSONObject.quote(moreContext) + "," : "";
         final String request = wrapJsonApiRequest("TripSearch", "{" //
                 + jsonContext //
@@ -1192,9 +1197,11 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 + "\"outDate\":\"" + outDate + "\"," //
                 + "\"outTime\":\"" + outTime + "\"," //
                 + "\"outFrwd\":" + outFrwd + "," //
-                + jnyFltr
-                + "\"gisFltrL\":[{\"mode\":\"FB\",\"profile\":{\"type\":\"F\",\"linDistRouting\":false,\"maxdist\":2000},\"type\":\"M\",\"meta\":\""
-                + meta + "\"}]," //
+                + jnyFltr //
+                + "\"gisFltrL\":[{" //
+                + "\"type\":\"M\",\"mode\":\"FBT\",\"meta\":\"foot_speed_" + (walkSpeed != null ? walkSpeed : WalkSpeed.NORMAL).name().toLowerCase() + "\"" //
+                + "},{\"type\":\"P\",\"mode\":\"FB\",\"profile\":{\"type\":\"F\",\"maxdist\":\"" + (maxWalkDistanceMeters != null ? maxWalkDistanceMeters : 2000) + "\"}" //
+                + "}]," //
                 + "\"getPolyline\":" + (loadPath ? "true" : "false") + ",\"getPasslist\":true," //
                 + (apiLevel <= 24 ? "\"getConGroups\":false," : "") //
                 + (direct ? "\"maxChg\":0," : "") //
@@ -1205,7 +1212,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         return jsonTripRequest("TripSearch", request,
                 from, via, to,
                 time, dep,
-                direct, bike, products, walkSpeed, minTransferTimeMinutes);
+                direct, bike, products, walkSpeed, maxWalkDistanceMeters, minTransferTimeMinutes);
     }
 
     private QueryTripsResult jsonTripReload(final HafasTripRef tripRef, final boolean loadPath) throws IOException {
@@ -1217,7 +1224,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 false);
 
         return jsonTripRequest("Reconstruction", request, tripRef.from, tripRef.via, tripRef.to,
-                new Date(), true, false, false, null, null, null);
+                new Date(), true, false, false, null, null, null, null);
     }
 
     private QueryJourneyResult jsonJourney(
@@ -1884,6 +1891,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         public final boolean bike;
         public final Set<Product> products;
         public final WalkSpeed walkSpeed;
+        public final Integer maxWalkDistanceMeters;
         public final Integer minTransferTimeMinutes;
         public final String laterContext, earlierContext;
 
@@ -1892,7 +1900,9 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
                 final Date date, final boolean dep,
                 final boolean direct, final boolean bike,
                 final Set<Product> products,
-                final WalkSpeed walkSpeed, final Integer minTransferTimeMinutes,
+                final WalkSpeed walkSpeed,
+                final Integer maxWalkDistanceMeters,
+                final Integer minTransferTimeMinutes,
                 final String laterContext, final String earlierContext) {
             this.from = from;
             this.via = via;
@@ -1903,6 +1913,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             this.bike = bike;
             this.products = products;
             this.walkSpeed = walkSpeed;
+            this.maxWalkDistanceMeters = maxWalkDistanceMeters;
             this.minTransferTimeMinutes = minTransferTimeMinutes;
             this.laterContext = laterContext;
             this.earlierContext = earlierContext;
