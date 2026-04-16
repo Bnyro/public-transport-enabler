@@ -151,7 +151,7 @@ public class NvvProviderLiveTest extends AbstractProviderLiveTest {
                 "An den Dünen");
         final Location to = new Location(LocationType.STATION, "3013508", Point.from1E6(50142890, 8895203), "Hanau",
                 "Beethovenplatz");
-        final TripOptions options = new TripOptions(Product.ALL_SELECTABLE, null, WalkSpeed.NORMAL, null, Accessibility.BARRIER_FREE,
+        final TripOptions options = new TripOptions(Product.ALL_SELECTABLE, null, WalkSpeed.NORMAL, null, null, Accessibility.BARRIER_FREE,
                 null);
         final QueryTripsResult result = queryTrips(from, null, to, new Date(), true, options);
         print(result);
