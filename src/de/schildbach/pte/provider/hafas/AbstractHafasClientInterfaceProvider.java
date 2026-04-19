@@ -85,6 +85,7 @@ import de.schildbach.pte.dto.Trip;
 import de.schildbach.pte.dto.TripOptions;
 import de.schildbach.pte.dto.TripRef;
 import de.schildbach.pte.exception.ParserException;
+import de.schildbach.pte.util.GeoUtils;
 import de.schildbach.pte.util.ParserUtils;
 import de.schildbach.pte.util.PolylineFormat;
 
@@ -132,6 +133,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
     @Nullable
     private String apiClient;
     private boolean useAddName = false;
+    private boolean findNearbyStationsUsingRectangle = false;
 
     private static final String SERVER_PRODUCT = "hci";
     private static final String SECTION_TYPE_JOURNEY = "JNY";
@@ -181,6 +183,10 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
 
     public void setUseAddName(boolean useAddName) {
         this.useAddName = useAddName;
+    }
+
+    public void setFindNearbyStationsUsingRectangle(final boolean findNearbyStationsUsingRectangle) {
+        this.findNearbyStationsUsingRectangle = findNearbyStationsUsingRectangle;
     }
 
     public String getApiEndpoint() {
@@ -404,22 +410,30 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             int maxDistance,
             int maxLocations,
             final Set<Product> products) throws IOException {
-        if (maxDistance == 0)
-            maxDistance = DEFAULT_MAX_DISTANCE;
         if (maxLocations == 0)
             maxLocations = DEFAULT_MAX_LOCATIONS;
         final boolean getStations = types.contains(LocationType.STATION);
         final boolean getPOIs = types.contains(LocationType.POI);
+        final int productsInt = productsInt(products);
+        final String geoMatch;
+        if (findNearbyStationsUsingRectangle) {
+            if (maxDistance == 0)
+                maxDistance = DEFAULT_MAX_DISTANCE_RECTANGLE;
+            final Point lowerLeft = GeoUtils.getRemotePoint(coord, 225, maxDistance);
+            final Point upperRight = GeoUtils.getRemotePoint(coord, 45, maxDistance);
+            geoMatch = "\"rect\": {\"llCrd\": {\"x\":" + lowerLeft.getLonAs1E6() + ",\"y\":" + lowerLeft.getLatAs1E6() + "},\"urCrd\": {\"x\":" + upperRight.getLonAs1E6() + ",\"y\":" + upperRight.getLatAs1E6() + "}}";
+        } else {
+            if (maxDistance == 0)
+                maxDistance = DEFAULT_MAX_DISTANCE_CIRCLE;
+            geoMatch = "\"ring\":{\"cCrd\":{\"x\":" + coord.getLonAs1E6() + ",\"y\":" + coord.getLatAs1E6() + "},\"maxDist\":" + maxDistance + "}";
+        }
         final String request = wrapJsonApiRequest("LocGeoPos", "{" //
-                + "\"ring\":{" //
-                  + "\"cCrd\":{\"x\":" + coord.getLonAs1E6() + ",\"y\":" + coord.getLatAs1E6() + "}," //
-                  + "\"maxDist\":" + maxDistance + "}," //
-                + "\"getStops\":" + getStations + "," //
-                + "\"getPOIs\":" + getPOIs + "," //
-                + (products == null ? ""
-                    : "\"locFltrL\":[{\"value\":\"" + productsInt(products) + "\",\"mode\":\"INC\",\"type\":\"PROD\"}],") //
-                + (maxLocations > 0 ? "\"maxLoc\":" + maxLocations : "") //
-                + "}", //
+                        + geoMatch //
+                        + ",\"getStops\":" + getStations //
+                        + ",\"getPOIs\":" + getPOIs //
+                        + (products == null ? "" : (",\"locFltrL\":[{\"value\":" + productsInt + ",\"mode\":\"INC\",\"type\":\"PROD\"}]")) //
+                        + (maxLocations > 0 ? (",\"maxLoc\":" + maxLocations) : "") //
+                        + "}", //
                 false);
 
         final HttpUrl url = requestUrl(request);

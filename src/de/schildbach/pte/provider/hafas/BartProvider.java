@@ -45,6 +45,7 @@ public class BartProvider extends AbstractHafasClientInterfaceProvider {
         setApiVersion("1.53");
         setApiClient(apiClient);
         setApiAuthorization(apiAuthorization);
+        setFindNearbyStationsUsingRectangle(true);
     }
 
     @Override

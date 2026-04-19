@@ -43,7 +43,8 @@ public abstract class AbstractHafasProvider extends AbstractNetworkProvider {
     protected static final String SERVER_PRODUCT = "hafas";
     protected static final int DEFAULT_MAX_DEPARTURES = 100;
     protected static final int DEFAULT_MAX_LOCATIONS = 50;
-    protected static final int DEFAULT_MAX_DISTANCE = 20000;
+    protected static final int DEFAULT_MAX_DISTANCE_CIRCLE = 20000;
+    protected static final int DEFAULT_MAX_DISTANCE_RECTANGLE = 2000;
 
     protected static final Set<Capability> CAPABILITIES = Set.of(
             Capability.SUGGEST_LOCATIONS,
