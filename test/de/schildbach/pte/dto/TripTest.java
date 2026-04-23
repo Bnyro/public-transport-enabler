@@ -17,7 +17,11 @@
 
 package de.schildbach.pte.dto;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,7 +32,7 @@ import org.junit.Test;
  * @author Patrick Kanzler
  */
 public class TripTest {
-    private final Date DUMMY_DATE = new Date(2025, 6, 10, 12, 0);
+    private final Date DUMMY_DATE = new GregorianCalendar(2025, 6, 10, 12, 0).getTime();
     private final String DUMMY_TRIP_ID = "dummyTrip";
 
     private Trip getDummyTripForChanges(Integer changes, Boolean numChangesNull, Integer mode) {
@@ -86,96 +90,96 @@ public class TripTest {
     public void getNumChangesNullPublic() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, true, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, true, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, true, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
     }
 
     @Test
     public void getNumChangesNotNullPublic() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, false, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, false, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, false, 0);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
     }
 
     @Test
     public void getNumChangesNullIndividual() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, true, 1);
-        Assert.assertNull(dummy.getNumChanges());
+        assertNull(dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, true, 1);
-        Assert.assertNull(dummy.getNumChanges());
+        assertNull(dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, true, 1);
-        Assert.assertNull(dummy.getNumChanges());
+        assertNull(dummy.getNumChanges());
     }
 
     @Test
     public void getNumChangesNotNullIndividual() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, false, 1);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, false, 1);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, false, 1);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
     }
 
     @Test
     public void getNumChangesNullMixed() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, true, 2);
-        Assert.assertNull(dummy.getNumChanges());
+        assertNull(dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, true, 2);
         numChangesExpected = numChangesExpected - 1;
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, true, 2);
         numChangesExpected = numChangesExpected - 2;
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 3;
         dummy = getDummyTripForChanges(numChangesExpected, true, 2);
         numChangesExpected = numChangesExpected - 2;
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
     }
 
     @Test
     public void getNumChangesNotNullMixed() {
         Integer numChangesExpected = 0;
         Trip dummy = getDummyTripForChanges(numChangesExpected, false, 2);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 1;
         dummy = getDummyTripForChanges(numChangesExpected, false, 2);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
 
         numChangesExpected = 2;
         dummy = getDummyTripForChanges(numChangesExpected, false, 2);
-        Assert.assertEquals(numChangesExpected, dummy.getNumChanges());
+        assertEquals(numChangesExpected, dummy.getNumChanges());
     }
 }

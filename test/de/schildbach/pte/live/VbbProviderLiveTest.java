@@ -18,6 +18,7 @@
 package de.schildbach.pte.live;
 
 import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -106,21 +107,21 @@ public class VbbProviderLiveTest extends AbstractProviderLiveTest {
     public void suggestLocations() throws Exception {
         final SuggestLocationsResult result = suggestLocations("Haubachstr.");
         print(result);
-        Assert.assertEquals("Haubachstr.", result.getLocations().get(0).name);
+        assertEquals("Haubachstr.", result.getLocations().get(0).name);
     }
 
     @Test
     public void suggestLocationsUmlaut() throws Exception {
         final SuggestLocationsResult result = suggestLocations("Güntzelstr.");
         print(result);
-        Assert.assertEquals("U Güntzelstr.", result.getLocations().get(0).name);
+        assertEquals("U Güntzelstr.", result.getLocations().get(0).name);
     }
 
     @Test
     public void suggestLocationsPOI() throws Exception {
         final SuggestLocationsResult result = suggestLocations("schwules museum");
         print(result);
-        Assert.assertThat(result.getLocations(), hasItem(new Location(LocationType.POI,
+        assertThat(result.getLocations(), hasItem(new Location(LocationType.POI,
                 "A=4@O=Berlin, Schwules Museum@X=13357979@Y=52504519@U=104@L=900980141@B=1@V=3.9,@p=1542286309@")));
     }
 
@@ -128,7 +129,7 @@ public class VbbProviderLiveTest extends AbstractProviderLiveTest {
     public void suggestLocationsAddress() throws Exception {
         final SuggestLocationsResult result = suggestLocations("10178 Berlin, Sophienstr. 24");
         print(result);
-        Assert.assertEquals("Sophienstr. 24", result.getLocations().get(0).name);
+        assertEquals("Sophienstr. 24", result.getLocations().get(0).name);
     }
 
     @Test
