@@ -1797,7 +1797,9 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
             final JSONObject prodCtx = prod.optJSONObject("prodCtx");
             if (prodCtx != null) {
                 id = prodCtx.optString("lineId", null);
-                ctxNum = prodCtx.optString("matchId", prodCtx.optString("num", null));
+                final String num = prodCtx.optString("num", null);
+                final String matchId = prodCtx.optString("matchId", null);
+                ctxNum = matchId == null || matchId.equals(number) ? num : matchId;
             } else {
                 id = null;
                 ctxNum = null;
