@@ -31,6 +31,7 @@ import de.schildbach.pte.provider.db.DbProvider;
 import de.schildbach.pte.provider.db.DbWebProvider;
 import de.schildbach.pte.provider.hafas.KvbProvider;
 import de.schildbach.pte.provider.hafas.RivierProvider;
+import de.schildbach.pte.provider.hafas.SbmMvvProvider;
 import de.schildbach.pte.provider.hafas.TpgProvider;
 import de.schildbach.pte.provider.hafas.UestraProvider;
 import de.schildbach.pte.provider.hafas.austria.StvProvider;
@@ -113,6 +114,7 @@ public enum NetworkId {
     BAYERN(Descriptor.from(BayernProvider.class, "de-DE", "Bayern;Würzburg;Regensburg")),
     MVV(Descriptor.from(MvvProvider.class, "de-DE", "Bayern;München",
             new Point[] { Point.fromDouble(48.140377, 11.560643) })),
+    SBMMVV(Descriptor.from(SbmMvvProvider.class, "de-DE", "Bayern;München", State.beta)),
     INVG(Descriptor.from(InvgProvider.class, "de-DE", "Ingolstadt")),
     AVV_AUGSBURG(Descriptor.from(AvvAugsburgProvider.class, "de-DE", "Augsburg", State.deprecated)), // AVV uses Efa now
     VGN(Descriptor.from(VgnProvider.class, "de-DE", "Nürnberg;Fürth;Erlangen")),
