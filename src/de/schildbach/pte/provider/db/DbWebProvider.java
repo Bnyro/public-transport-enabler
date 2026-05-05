@@ -612,13 +612,31 @@ public abstract class DbWebProvider extends DbProvider {
         final Position ezGleis = parsePosition(stop.optString("ezGleis", null));
         final boolean cancelled = parseCancelled(stop);
         final Location stopLocation = parseLocation(stop);
+        final String ankunftSollzeit, ankunftEchtzeit;
+        final JSONObject ankunft = stop.optJSONObject("ankunft");
+        if (ankunft != null) {
+            ankunftSollzeit = ankunft.optString("sollzeit", null);
+            ankunftEchtzeit = ankunft.optString("echtzeit", null);
+        } else {
+            ankunftSollzeit = stop.optString("ankunftsZeitpunkt", null);
+            ankunftEchtzeit = stop.optString("ezAnkunftsZeitpunkt", null);
+        }
+        final String abfahrtSollzeit, abfahrtEchtzeit;
+        final JSONObject abfahrt = stop.optJSONObject("abfahrt");
+        if (abfahrt != null) {
+            abfahrtSollzeit = abfahrt.optString("sollzeit", null);
+            abfahrtEchtzeit = abfahrt.optString("echtzeit", null);
+        } else {
+            abfahrtSollzeit = stop.optString("abfahrtsZeitpunkt", null);
+            abfahrtEchtzeit = stop.optString("ezAbfahrtsZeitpunkt", null);
+        }
         return new Stop(
                 stopLocation != null && stopLocation.id != null ? stopLocation : fallbackLocation,
-                parseIso8601NoOffset(stop.optString("ankunftsZeitpunkt", null)),
-                parseIso8601NoOffset(stop.optString("ezAnkunftsZeitpunkt", null)),
+                parseIso8601NoOffset(ankunftSollzeit),
+                parseIso8601NoOffset(ankunftEchtzeit),
                 gleis, ezGleis, cancelled,
-                parseIso8601NoOffset(stop.optString("abfahrtsZeitpunkt", null)),
-                parseIso8601NoOffset(stop.optString("ezAbfahrtsZeitpunkt", null)),
+                parseIso8601NoOffset(abfahrtSollzeit),
+                parseIso8601NoOffset(abfahrtEchtzeit),
                 gleis, ezGleis, cancelled);
     }
 
@@ -664,7 +682,7 @@ public abstract class DbWebProvider extends DbProvider {
         // first, find the polylineDescription with the greatest distance
         // note that sometime there are 2 or 3 descriptions and those at the beginning or end
         // look like walks inside the stations.
-        double maxDistance = Double.MIN_VALUE;
+        double maxDistance = -1d;
         JSONArray longestCoordinates = null;
         for (int nGroup = 0; nGroup < numDescriptions; ++nGroup) {
             final JSONObject description = polylineDescriptions.getJSONObject(nGroup);
@@ -677,6 +695,8 @@ public abstract class DbWebProvider extends DbProvider {
                 longestCoordinates = coordinates;
             }
         }
+        if (longestCoordinates == null)
+            return null;
         final List<Point> path = new ArrayList<>();
         for (int nCoord = 0; nCoord < longestCoordinates.length(); ++nCoord) {
             path.add(parseCoordinate(longestCoordinates.getJSONObject(nCoord)));
@@ -946,6 +966,7 @@ public abstract class DbWebProvider extends DbProvider {
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final IOException | RuntimeException e) {
+            log.error("queryTrips", e);
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -976,6 +997,7 @@ public abstract class DbWebProvider extends DbProvider {
             }
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final IOException | RuntimeException e) {
+            log.error("queryReloadTrip", e);
             return new QueryTripsResult(this.resultHeader, QueryTripsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1018,6 +1040,7 @@ public abstract class DbWebProvider extends DbProvider {
         } catch (final InternalErrorException | BlockedException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.INVALID_ID);
         } catch (final IOException | RuntimeException e) {
+            log.error("queryNearbyLocations", e);
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1121,6 +1144,7 @@ public abstract class DbWebProvider extends DbProvider {
         } catch (final InternalErrorException | BlockedException e) {
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.INVALID_STATION);
         } catch (final IOException | RuntimeException e) {
+            log.error("queryDepartures", e);
             return new QueryDeparturesResult(this.resultHeader, QueryDeparturesResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1250,6 +1274,7 @@ public abstract class DbWebProvider extends DbProvider {
             }
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
         } catch (final IOException | RuntimeException e) {
+            log.error("queryJourney", e);
             return new QueryJourneyResult(this.resultHeader, QueryJourneyResult.Status.SERVICE_DOWN);
         } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
