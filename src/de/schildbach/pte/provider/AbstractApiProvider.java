@@ -35,12 +35,12 @@ public abstract class AbstractApiProvider implements ApiProvider {
          this.log = LoggerFactory.getLogger(this.getClass());
     }
 
-    public String setUserInterfaceLanguage(@javax.annotation.Nullable String userInterfaceLanguage) {
-        String lang = userInterfaceLanguage == null ? null : userInterfaceLanguage.toLowerCase();
-        String[] validLangs = getValidUserInterfaceLanguages();
+    public String setUserInterfaceLanguage(@javax.annotation.Nullable final String userInterfaceLanguage) {
+        final String lang = userInterfaceLanguage == null ? null : userInterfaceLanguage.toLowerCase();
+        final String[] validLangs = getValidUserInterfaceLanguages();
         String uiLang = null;
         if (validLangs != null) {
-            for (String validLang : validLangs) {
+            for (final String validLang : validLangs) {
                 if (validLang.equals(lang)) {
                     uiLang = validLang;
                     break;
@@ -77,7 +77,7 @@ public abstract class AbstractApiProvider implements ApiProvider {
         return this;
     }
 
-    public void setMessagesAsSimpleHtml(boolean messagesAsSimpleHtml) {
+    public void setMessagesAsSimpleHtml(final boolean messagesAsSimpleHtml) {
         this.messagesAsSimpleHtml = messagesAsSimpleHtml;
     }
 }

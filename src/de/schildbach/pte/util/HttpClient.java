@@ -26,7 +26,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +37,7 @@ import java.util.stream.Stream;
 import java.util.zip.Inflater;
 
 import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -86,7 +86,7 @@ import androidx.annotation.NonNull;
 public final class HttpClient {
     @Nullable
     private String userAgent = null;
-    private Map<String, String> headers = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
     @Nullable
     private String sessionCookieName = null;
     @Nullable
@@ -129,7 +129,7 @@ public final class HttpClient {
         setHeader("Accept", SCRAPE_ACCEPT);
     }
 
-    public void setUserAgent(final String userAgent) {
+    public void setUserAgent(@Nullable final String userAgent) {
         this.userAgent = userAgent;
     }
 
@@ -137,11 +137,11 @@ public final class HttpClient {
         this.headers.put(headerName, headerValue);
     }
 
-    public void setSessionCookieName(final String sessionCookieName) {
+    public void setSessionCookieName(@Nullable final String sessionCookieName) {
         this.sessionCookieName = sessionCookieName;
     }
 
-    public void setProxy(final Proxy proxy) {
+    public void setProxy(@Nullable final Proxy proxy) {
         this.proxy = proxy;
     }
 
@@ -207,7 +207,7 @@ public final class HttpClient {
             final HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                     new HttpLoggingInterceptor.Logger() {
                         @Override
-                        public void log(final String message) {
+                        public void log(@Nonnull final String message) {
                             log.debug(message);
                         }
                     });
@@ -218,6 +218,7 @@ public final class HttpClient {
                 private final String HEADER_CONTENT_TYPE = "Content-Type";
 
                 @Override
+                @Nonnull
                 public Response intercept(final Interceptor.Chain chain) throws IOException {
                     Response response = chain.proceed(chain.request());
                     final MediaType originalContentType = response.body().contentType();
@@ -242,19 +243,16 @@ public final class HttpClient {
                 }
             };
 
-            final Interceptor retryInterceptor = new Interceptor() {
-                @Override
-                public Response intercept(final Chain chain) throws IOException {
-                    final Request request = chain.request();
-                    Response response = null;
-                    response = chain.proceed(request);
-                    if (response.isSuccessful() && response.peekBody(1).bytes().length == 0) {
-                        log.info("Got empty response, retrying {}", request.url());
-                        response.close();
-                        return chain.proceed(request); // retry
-                    }
-                    return response;
+            final Interceptor retryInterceptor = chain -> {
+                final Request request = chain.request();
+                Response response = null;
+                response = chain.proceed(request);
+                if (response.isSuccessful() && response.peekBody(1).bytes().length == 0) {
+                    log.info("Got empty response, retrying {}", request.url());
+                    response.close();
+                    return chain.proceed(request); // retry
                 }
+                return response;
             };
 
             final CompressionInterceptor.DecompressionAlgorithm DeflateInstance = new CompressionInterceptor.DecompressionAlgorithm() {
@@ -284,16 +282,17 @@ public final class HttpClient {
             final Interceptor compressionInterceptor = new CompressionInterceptor(
                     decompressionAlgorithms.toArray(new CompressionInterceptor.DecompressionAlgorithm[]{}));
 
-            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.followRedirects(true);
-            builder.followSslRedirects(false);
-            builder.connectTimeout(15, TimeUnit.SECONDS);
-            builder.writeTimeout(30, TimeUnit.SECONDS);
-            builder.readTimeout(30, TimeUnit.SECONDS);
-            builder.addNetworkInterceptor(loggingInterceptor);
-            builder.addInterceptor(retryInterceptor);
-            builder.addInterceptor(xmlEncodingInterceptor);
-            builder.addInterceptor(compressionInterceptor);
+            final OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                    .followRedirects(true)
+                    .followSslRedirects(false)
+                    .connectTimeout(3, TimeUnit.SECONDS)
+                    .writeTimeout(5, TimeUnit.SECONDS)
+                    .readTimeout(5, TimeUnit.SECONDS)
+                    .callTimeout(10, TimeUnit.SECONDS)
+                    .addNetworkInterceptor(loggingInterceptor)
+                    .addInterceptor(retryInterceptor)
+                    .addInterceptor(xmlEncodingInterceptor)
+                    .addInterceptor(compressionInterceptor);
 
             if (proxy != null || trustAllCertificates || certificatePinner != null || useClientCertificate) {
                 if (proxy != null)
