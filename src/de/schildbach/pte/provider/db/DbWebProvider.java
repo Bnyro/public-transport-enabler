@@ -48,8 +48,6 @@ import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TimeZone;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -200,9 +198,6 @@ public abstract class DbWebProvider extends DbProvider {
     private final HttpUrl locationsEndpoint;
     private final HttpUrl nearbyEndpoint;
     private final BahnvorhersageProvider bahnvorhersageProvider;
-
-    private static final Pattern P_SPLIT_NAME_FIRST_COMMA = Pattern.compile("([^,]*), (.*)");
-    private static final Pattern P_SPLIT_NAME_ONE_COMMA = Pattern.compile("([^,]*), ([^,]*)");
 
     private static final int[] VALID_MIN_TRANSFER_TIMES = { 0, 10, 15, 20, 25, 30, 35, 40, 45 };
 
@@ -412,34 +407,6 @@ public abstract class DbWebProvider extends DbProvider {
             }
         }
         return out;
-    }
-
-    protected String[] splitPlaceAndName(final String placeAndName, final Pattern p, final int place, final int name) {
-        if (placeAndName == null)
-            return new String[] { null, null };
-        final Matcher m = p.matcher(placeAndName);
-        if (m.matches())
-            return new String[] { m.group(place), m.group(name) };
-        return new String[] { null, placeAndName };
-    }
-
-    protected String[] splitStationName(final String name) {
-        return splitPlaceAndName(name, P_SPLIT_NAME_ONE_COMMA, 2, 1);
-    }
-
-    protected String[] splitAddress(final String address) {
-        return splitPlaceAndName(address, P_SPLIT_NAME_FIRST_COMMA, 1, 2);
-    }
-
-    private Location createLocation(final LocationType type, final String id, final Point coord, final String name,
-                                    final Set<Product> products, final String bahnhofsInfoId) {
-        final String[] placeAndName = type == LocationType.STATION ? splitStationName(name) : splitAddress(name);
-        final String infoId = bahnhofsInfoId != null ? bahnhofsInfoId : id;
-        final String url = infoId == null ? null : (
-                "https://www.bahnhof.de"
-                    + ("de".equals(this.userInterfaceLanguage) ? "" : "/en")
-                    + "/bahnhof-de/id/" + infoId);
-        return new Location(type, id, coord, placeAndName[0], placeAndName[1], products, url);
     }
 
     private Location parseLocation(final JSONObject loc) {

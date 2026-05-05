@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -34,6 +36,8 @@ import de.schildbach.pte.NetworkId;
 import de.schildbach.pte.dto.JourneyRef;
 import de.schildbach.pte.dto.Line;
 import de.schildbach.pte.dto.Location;
+import de.schildbach.pte.dto.LocationType;
+import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.dto.Product;
 import de.schildbach.pte.dto.Style;
 import de.schildbach.pte.dto.Trip;
@@ -346,5 +350,36 @@ public abstract class DbProvider extends AbstractNetworkProvider {
     @Override
     public Description getDescription() {
         return getDbDescription();
+    }
+
+    protected String[] splitPlaceAndName(final String placeAndName, final Pattern p, final int place, final int name) {
+        if (placeAndName == null)
+            return new String[] { null, null };
+        final Matcher m = p.matcher(placeAndName);
+        if (m.matches())
+            return new String[] { m.group(place), m.group(name) };
+        return new String[] { null, placeAndName };
+    }
+
+    private static final Pattern P_SPLIT_NAME_ONE_COMMA = Pattern.compile("([^,(]*(\\([^)]*\\))?), ([^,]*)");
+    protected String[] splitStationName(final String name) {
+        return splitPlaceAndName(name, P_SPLIT_NAME_ONE_COMMA, 3, 1);
+    }
+
+    private static final Pattern P_SPLIT_NAME_FIRST_COMMA = Pattern.compile("([^,]*), (.*)");
+    protected String[] splitAddress(final String address) {
+        return splitPlaceAndName(address, P_SPLIT_NAME_FIRST_COMMA, 1, 2);
+    }
+
+    protected Location createLocation(
+            final LocationType type, final String id, final Point coord, final String name,
+            final Set<Product> products, final String bahnhofsInfoId) {
+        final String[] placeAndName = type == LocationType.STATION ? splitStationName(name) : splitAddress(name);
+        final String infoId = bahnhofsInfoId != null ? bahnhofsInfoId : id;
+        final String url = infoId == null ? null : (
+                "https://www.bahnhof.de"
+                        + ("de".equals(this.userInterfaceLanguage) ? "" : "/en")
+                        + "/bahnhof-de/id/" + infoId);
+        return new Location(type, id, coord, placeAndName[0], placeAndName[1], products, url);
     }
 }
