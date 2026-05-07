@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -199,16 +198,6 @@ public abstract class DbMovasProvider extends DbProvider {
         }
     };
 
-    private static final Map<String, LocationType> ID_LOCATION_TYPE_MAP = new HashMap<String, LocationType>() {
-        private static final long serialVersionUID = -1200641123866654217L;
-
-        {
-            put("1", LocationType.STATION);
-            put("4", LocationType.POI);
-            put("2", LocationType.ADDRESS);
-        }
-    };
-
     private static final Map<LocationType, String> LOCATION_TYPE_MAP = new HashMap<LocationType, String>() {
         private static final long serialVersionUID = -2827675532432392114L;
 
@@ -335,61 +324,6 @@ public abstract class DbMovasProvider extends DbProvider {
         final OffsetDateTime offsetDateTime = OffsetDateTime.parse(time, ISO_DATE_TIME_WITH_OFFSET_FORMAT);
         return new PTDate(offsetDateTime.toInstant().toEpochMilli(),
                 offsetDateTime.getOffset().getTotalSeconds() * 1000);
-    }
-
-    private String createLidEntry(final String key, final Object value) {
-        return key + "=" + value + "@";
-    }
-
-    private String formatLid(final Location loc) {
-        if (loc.id != null && loc.id.startsWith("A=") && loc.id.contains("@")) {
-            return loc.id;
-        }
-        final String typeId = ID_LOCATION_TYPE_MAP
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() == loc.type)
-                .findFirst()
-                .map(e -> e.getKey())
-                .orElse("0");
-
-        final StringBuilder out = new StringBuilder();
-        out.append(createLidEntry("A", typeId));
-        if (loc.name != null) {
-            out.append(createLidEntry("O", loc.name));
-        }
-        if (loc.coord != null) {
-            out.append(createLidEntry("X", loc.coord.getLonAs1E6()));
-            out.append(createLidEntry("Y", loc.coord.getLatAs1E6()));
-        }
-        if (loc.id != null) {
-            out.append(createLidEntry("L", normalizeStationId(loc.id)));
-        }
-        return out.toString();
-    }
-
-    private String formatLid(final String stationId) {
-        return formatLid(new Location(LocationType.STATION, stationId));
-    }
-
-    private Location parseLid(final String loc) {
-        if (loc == null)
-            return new Location(LocationType.STATION, null);
-        final Map<String, String> props = Arrays.stream(loc.split("@"))
-                .map(chunk -> chunk.split("="))
-                .filter(e -> e.length == 2)
-                .collect(Collectors.toMap(e -> e[0], e -> e[1]));
-        Point coord = null;
-        try {
-            coord = Point.from1E6(Integer.parseInt(props.get("Y")), Integer.parseInt(props.get("X")));
-        } catch (final Exception e) {
-        }
-        return new Location(
-                Optional.ofNullable(ID_LOCATION_TYPE_MAP.get(props.get("A"))).orElse(LocationType.ANY),
-                props.get("L"),
-                coord,
-                null,
-                props.get("O"));
     }
 
     private String formatProducts(final Set<Product> products) {

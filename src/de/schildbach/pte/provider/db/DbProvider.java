@@ -26,9 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -381,5 +383,71 @@ public abstract class DbProvider extends AbstractNetworkProvider {
                         + ("de".equals(this.userInterfaceLanguage) ? "" : "/en")
                         + "/bahnhof-de/id/" + infoId);
         return new Location(type, id, coord, placeAndName[0], placeAndName[1], products, url);
+    }
+
+    private String createLidEntry(final String key, final Object value) {
+        return key + "=" + value + "@";
+    }
+
+    protected String formatLid(final Location loc) {
+        if (loc.id != null && loc.id.startsWith("A=") && loc.id.contains("@")) {
+            return loc.id;
+        }
+        final String typeId = ID_LOCATION_TYPE_MAP
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() == loc.type)
+                .findFirst()
+                .map(e -> e.getKey())
+                .orElse("0");
+
+        final StringBuilder out = new StringBuilder();
+        out.append(createLidEntry("A", typeId));
+        if (loc.name != null) {
+            out.append(createLidEntry("O", loc.place != null ? loc.name + ", " + loc.place : loc.name));
+        }
+        if (loc.coord != null) {
+            out.append(createLidEntry("X", loc.coord.getLonAs1E6()));
+            out.append(createLidEntry("Y", loc.coord.getLatAs1E6()));
+        }
+        if (loc.id != null) {
+            out.append(createLidEntry("L", normalizeStationId(loc.id)));
+        }
+        return out.toString();
+    }
+
+    protected String formatLid(final String stationId) {
+        return formatLid(new Location(LocationType.STATION, stationId));
+    }
+
+    private static final Map<String, LocationType> ID_LOCATION_TYPE_MAP = new HashMap<String, LocationType>() {
+        private static final long serialVersionUID = 295592979187174489L;
+
+        {
+            put("1", LocationType.STATION);
+            put("4", LocationType.POI);
+            put("2", LocationType.ADDRESS);
+        }
+    };
+
+    protected Location parseLid(final String loc) {
+        if (loc == null)
+            return new Location(LocationType.STATION, null);
+        final Map<String, String> props = Arrays.stream(loc.split("@"))
+                .map(chunk -> chunk.split("="))
+                .filter(e -> e.length == 2)
+                .collect(Collectors.toMap(e -> e[0], e -> e[1]));
+        Point coord = null;
+        try {
+            coord = Point.from1E6(Integer.parseInt(props.get("Y")), Integer.parseInt(props.get("X")));
+        } catch (final Exception e) {
+            // ignore
+        }
+        return new Location(
+                Optional.ofNullable(ID_LOCATION_TYPE_MAP.get(props.get("A"))).orElse(LocationType.ANY),
+                props.get("L"),
+                coord,
+                null,
+                props.get("O"));
     }
 }
