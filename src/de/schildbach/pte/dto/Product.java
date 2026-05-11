@@ -42,14 +42,22 @@ public enum Product {
     ON_DEMAND('P'),
     REPLACEMENT_SERVICE('E');
 
+    private static EnumSet<Product> Join(EnumSet<Product> a, EnumSet<Product> b) {
+        final EnumSet<Product> s = EnumSet.copyOf(a);
+        s.addAll(b);
+        return s;
+    }
+
+    public static final EnumSet<Product> NON_SELECTABLE = EnumSet
+            .of(REPLACEMENT_SERVICE, UNKNOWN);
     public static final Set<Product> ALL_SELECTABLE = EnumSet
-            .complementOf(EnumSet.of(REPLACEMENT_SERVICE, UNKNOWN));
+            .complementOf(NON_SELECTABLE);
     public static final Set<Product> ALL_INCLUDING_HIGHSPEED = EnumSet
-            .complementOf(EnumSet.of(REPLACEMENT_SERVICE, UNKNOWN));
+            .complementOf(NON_SELECTABLE);
     public static final Set<Product> ALL_EXCEPT_HIGHSPEED = EnumSet
-            .complementOf(EnumSet.of(HIGH_SPEED_TRAIN, REPLACEMENT_SERVICE, UNKNOWN));
+            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN), NON_SELECTABLE));
     public static final Set<Product> ALL_EXCEPT_HIGHSPEED_AND_ONDEMAND = EnumSet
-            .complementOf(EnumSet.of(HIGH_SPEED_TRAIN, ON_DEMAND, REPLACEMENT_SERVICE, UNKNOWN));
+            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN, ON_DEMAND), NON_SELECTABLE));
 
     public static final EnumSet<Product> TRAIN_PRODUCTS = EnumSet.of(
             HIGH_SPEED_TRAIN,
