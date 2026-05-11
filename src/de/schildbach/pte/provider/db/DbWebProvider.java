@@ -1345,6 +1345,7 @@ public abstract class DbWebProvider extends DbProvider {
             } catch (final InternalErrorException | BlockedException e) {
                 return null;
             } catch (final IOException | RuntimeException e) {
+                log.error("error on shareTrip request", e);
                 return null;
             } catch (final JSONException x) {
                 throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
@@ -1366,6 +1367,7 @@ public abstract class DbWebProvider extends DbProvider {
             } catch (final InternalErrorException | BlockedException e) {
                 return null;
             } catch (final IOException | RuntimeException e) {
+                log.error("error on loadSharedTrip request", e);
                 return null;
             } catch (final JSONException x) {
                 throw new ParserException("cannot parse json: '" + page + "' on " + url, x);
