@@ -224,7 +224,8 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         httpClient.setHeader("Accept", "application/json");
         // Complex routing requests (regional only, across the continent) take time to complete,
         // the default timeout is insufficient
-        httpClient.setTimeout(30, TimeUnit.SECONDS);
+        //  --> replaced by call-specific timeouts
+        //   httpClient.setTimeout(30, TimeUnit.SECONDS);
         this.apiBase = requireNonNull(apiBase);
     }
 
@@ -755,7 +756,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         // if (!loadPath) {
         //     b.setQueryParameter("detailedTransfers", "false");
         // }
-        final CharSequence apiResult = httpClient.get(b.build());
+        final CharSequence apiResult = httpClient.get(b.build(), 30);
 
         try {
             final JSONObject data = new JSONObject(apiResult.toString());
