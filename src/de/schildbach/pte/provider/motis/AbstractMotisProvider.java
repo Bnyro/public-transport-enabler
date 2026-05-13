@@ -416,7 +416,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
             final String mode = motisLeg.getString("mode");
             if (MOTIS_INDIVIDUAL_MODE_MAP.containsKey(mode)) {
                 // Individual leg
-                final int distance = (int) motisLeg.getDouble("distance");
+                final int distance = (int) motisLeg.optDouble("distance", 0);
                 legs.add(new Trip.Individual(
                         MOTIS_INDIVIDUAL_MODE_MAP.get(mode), 
                         depStop.location, 
