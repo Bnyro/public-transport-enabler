@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 
 public interface ApiProvider {
     String setUserInterfaceLanguage(@Nullable String userInterfaceLanguage);
+    enum UserAgentType { NONE, ANY, APP, BROWSER }
+    UserAgentType getUserAgentType();
     ApiProvider setUserAgent(final String userAgent);
     ApiProvider setProxy(final Proxy proxy);
     ApiProvider setTrustAllCertificates(final boolean trustAllCertificates);

@@ -63,6 +63,11 @@ public class NominatimLocationSearchProvider extends AbstractLocationSearchProvi
     }
 
     @Override
+    public UserAgentType getUserAgentType() {
+        return UserAgentType.APP;
+    }
+
+    @Override
     public SuggestLocationsResult suggestLocations(
             final CharSequence constraint,
             final @Nullable Set<LocationType> types,

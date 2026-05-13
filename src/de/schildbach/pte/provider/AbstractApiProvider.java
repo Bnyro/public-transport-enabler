@@ -57,8 +57,15 @@ public abstract class AbstractApiProvider implements ApiProvider {
         return null;
     }
 
+    @Override
+    public UserAgentType getUserAgentType() {
+        return UserAgentType.ANY;
+    }
+
     public AbstractApiProvider setUserAgent(final String userAgent) {
-        httpClient.setUserAgent(userAgent);
+        if (userAgent != null && getUserAgentType() != UserAgentType.NONE) {
+            httpClient.setUserAgent(userAgent);
+        }
         return this;
     }
 
