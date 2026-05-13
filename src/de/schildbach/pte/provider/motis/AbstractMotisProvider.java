@@ -253,6 +253,11 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         };
     }
 
+    @Override
+    public Set<Product> defaultProducts() {
+        return Product.ALL_INCLUDING_HIGHSPEED;
+    }
+
     protected static PTDate parseMotisDateTime(String dateTime, ZoneId zone) {
         final TemporalAccessor t = DateTimeFormatter.ISO_DATE_TIME.parse(dateTime);
         final ZonedDateTime odt = OffsetDateTime.from(t).atZoneSameInstant(zone);
