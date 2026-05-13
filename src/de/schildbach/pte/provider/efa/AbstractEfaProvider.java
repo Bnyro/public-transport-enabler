@@ -2557,7 +2557,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             }
         };
 
-        httpClient.getInputStream(callback, url.build(), httpRefererTrip);
+        httpClient.getInputStream(callback, url.build(), httpRefererTrip, 30);
 
         return result.get();
     }
@@ -2580,7 +2580,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             }
         };
 
-        httpClient.getInputStream(callback, url.build(), httpRefererTrip);
+        httpClient.getInputStream(callback, url.build(), httpRefererTrip, 30);
 
         return result.get();
     }
@@ -2607,7 +2607,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             }
         };
 
-        httpClient.getInputStream(callback, url.build(), httpRefererTrip);
+        httpClient.getInputStream(callback, url.build(), httpRefererTrip, 30);
 
         return result.get();
     }
@@ -2633,7 +2633,7 @@ public abstract class AbstractEfaProvider extends AbstractNetworkProvider {
             }
         };
 
-        httpClient.getInputStream(callback, url.build(), httpRefererTrip);
+        httpClient.getInputStream(callback, url.build(), httpRefererTrip, 30);
 
         return result.get();
     }

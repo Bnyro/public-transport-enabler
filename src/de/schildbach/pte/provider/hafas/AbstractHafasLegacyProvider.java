@@ -1198,7 +1198,7 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
             } catch (final XmlPullParserException x) {
                 throw new ParserException("cannot parse xml: " + bodyPeek, x);
             }
-        }, endpoint, request, "application/xml");
+        }, endpoint, request, "application/xml", 30);
 
         return result.get();
     }
@@ -2028,7 +2028,7 @@ public abstract class AbstractHafasLegacyProvider extends AbstractHafasProvider 
                     throw new IllegalStateException("error " + errorCode + " on " + url);
                 }
             }
-        }, url);
+        }, url, 30);
 
         return result.get();
     }

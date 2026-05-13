@@ -390,6 +390,10 @@ public class VrsProvider extends AbstractNetworkProvider {
         return httpClient.get(url.build());
     }
 
+    private CharSequence httpGet(final HttpUrl.Builder url, final long callTimeoutSecs) throws IOException {
+        return httpClient.get(url.build(), callTimeoutSecs);
+    }
+
     @Override
     public NearbyLocationsResult queryNearbyLocations(
             final Set<LocationType> types,
@@ -699,7 +703,7 @@ public class VrsProvider extends AbstractNetworkProvider {
             url.addQueryParameter("p", generateProducts(options.products));
         url.addQueryParameter("o", "v" + (EXACT_POINTS ? "p" : ""));
 
-        final CharSequence page = httpGet(url);
+        final CharSequence page = httpGet(url, 30);
 
         try {
             final List<Trip> trips = new ArrayList<>();

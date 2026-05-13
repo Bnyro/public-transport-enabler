@@ -772,7 +772,7 @@ public class NegentweeProvider extends AbstractNetworkProvider {
 
         CharSequence page;
         try {
-            page = httpClient.get(url);
+            page = httpClient.get(url, 30);
         } catch (InternalErrorException e) {
             return new NearbyLocationsResult(this.resultHeader, NearbyLocationsResult.Status.SERVICE_DOWN);
         }

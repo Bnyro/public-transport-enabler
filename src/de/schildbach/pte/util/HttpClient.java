@@ -308,31 +308,57 @@ public final class HttpClient {
         return okHttpClient;
     }
     
-    public void setTimeout(long timeout, TimeUnit unit) {
-        okHttpClient = getOkHttpClient().newBuilder()
-                .callTimeout(timeout, unit)
-                .readTimeout(timeout, unit)
-                .writeTimeout(timeout, unit)
-                .build();
-    }
-
-    public CharSequence get(final HttpUrl url) throws IOException {
-        return get(url, null, null, defaultReferer, defaultOrigin);
-    }
-
-    public CharSequence get(final HttpUrl url, final String postRequest, final String requestContentType)
+    public CharSequence get(
+            final HttpUrl url)
             throws IOException {
-        return get(url, postRequest, requestContentType, defaultReferer, defaultOrigin);
+        return get(url, null, null, defaultReferer, defaultOrigin, 0);
     }
 
     public CharSequence get(
-            final HttpUrl url, final String postRequest,
+            final HttpUrl url,
+            final long callTimeoutSecs)
+            throws IOException {
+        return get(url, null, null, defaultReferer, defaultOrigin, callTimeoutSecs);
+    }
+
+    public CharSequence get(
+            final HttpUrl url,
+            final String postRequest,
+            final String requestContentType)
+            throws IOException {
+        return get(url, postRequest, requestContentType, defaultReferer, defaultOrigin, 0);
+    }
+
+    public CharSequence get(
+            final HttpUrl url,
+            final String postRequest,
             final String requestContentType,
-            final String referer, final String origin)
+            final long callTimeoutSecs)
+            throws IOException {
+        return get(url, postRequest, requestContentType, defaultReferer, defaultOrigin, callTimeoutSecs);
+    }
+
+    public CharSequence get(
+            final HttpUrl url,
+            final String postRequest,
+            final String requestContentType,
+            final String referer,
+            final String origin)
+            throws IOException {
+        return get(url, postRequest, requestContentType, referer, origin, 0);
+    }
+
+    public CharSequence get(
+            final HttpUrl url,
+            final String postRequest,
+            final String requestContentType,
+            final String referer,
+            final String origin,
+            final long callTimeoutSecs)
             throws IOException {
         final StringBuilder buffer = new StringBuilder();
         final Callback callback = (bodyPeek, body) -> buffer.append(body.string());
-        getInputStream(callback, url, postRequest, requestContentType, referer, origin);
+        getInputStream(callback, url, postRequest, requestContentType, referer, origin, callTimeoutSecs);
         return buffer;
     }
 
@@ -342,24 +368,47 @@ public final class HttpClient {
 
     public void getInputStream(
             final Callback callback, final HttpUrl url) throws IOException {
-        getInputStream(callback, url, null, null, defaultReferer, defaultOrigin);
+        getInputStream(callback, url, null, null, defaultReferer, defaultOrigin, 0);
+    }
+
+    public void getInputStream(
+            final Callback callback, final HttpUrl url,
+            final long callTimeoutSecs) throws IOException {
+        getInputStream(callback, url, null, null, defaultReferer, defaultOrigin, callTimeoutSecs);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String referer) throws IOException {
-        getInputStream(callback, url, null, null, referer, defaultOrigin);
+        getInputStream(callback, url, null, null, referer, defaultOrigin, 0);
+    }
+
+    public void getInputStream(
+            final Callback callback, final HttpUrl url, final String referer,
+            final long callTimeoutSecs) throws IOException {
+        getInputStream(callback, url, null, null, referer, defaultOrigin, callTimeoutSecs);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String postRequest,
             final String requestContentType) throws IOException {
-        getInputStream(callback, url, postRequest, requestContentType, defaultReferer, defaultOrigin);
+        getInputStream(callback, url, postRequest, requestContentType, defaultReferer, defaultOrigin, 0);
     }
 
     public void getInputStream(
             final Callback callback, final HttpUrl url, final String postRequest,
             final String requestContentType,
-            final String referer, final String origin) throws IOException {
+            final long callTimeoutSecs) throws IOException {
+        getInputStream(callback, url, postRequest, requestContentType, defaultReferer, defaultOrigin, callTimeoutSecs);
+    }
+
+    public void getInputStream(
+            final Callback callback,
+            final HttpUrl url,
+            final String postRequest,
+            final String requestContentType,
+            final String referer,
+            final String origin,
+            final long callTimeoutSecs) throws IOException {
         requireNonNull(callback);
         requireNonNull(url);
 
@@ -380,9 +429,14 @@ public final class HttpClient {
         if (sessionCookie != null && sessionCookie.name().equals(sessionCookieName))
             request.header("Cookie", sessionCookie.toString());
 
-        final OkHttpClient okHttpClient = getOkHttpClient();
+        OkHttpClient callSpecificHttpClient = getOkHttpClient();
+        if (callTimeoutSecs != 0) {
+            callSpecificHttpClient = callSpecificHttpClient.newBuilder()
+                    .callTimeout(callTimeoutSecs, TimeUnit.SECONDS)
+                    .build();
+        }
 
-        final Call call = okHttpClient.newCall(request.build());
+        final Call call = callSpecificHttpClient.newCall(request.build());
         try (final Response response = call.execute()) {
             final int responseCode = response.code();
             final String bodyPeek = response.peekBody(SCRAPE_PEEK_SIZE).string().replaceAll("\\p{C}", "");

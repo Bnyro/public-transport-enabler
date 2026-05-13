@@ -255,8 +255,12 @@ public abstract class DbWebProvider extends DbProvider {
     }
 
     private static String doRequest(
-            final HttpClient httpClient, final String userInterfaceLanguage,
-            final HttpUrl url, final String body, final String contentType) throws IOException {
+            final HttpClient httpClient,
+            final String userInterfaceLanguage,
+            final HttpUrl url,
+            final String body,
+            final String contentType,
+            final long callTimeoutSecs) throws IOException {
         // DB API requires these headers
         // Content-Type must be exactly as passed below,
         // passing it to httpClient.get would add charset suffix
@@ -266,16 +270,33 @@ public abstract class DbWebProvider extends DbProvider {
         if (body != null) httpClient.setHeader("Content-Type", cType);
         if (userInterfaceLanguage != null)
             httpClient.setHeader("Accept-Language", userInterfaceLanguage);
-        final String page = httpClient.get(url, body, null).toString();
+        final String page = httpClient.get(url, body, null, callTimeoutSecs).toString();
         return page;
     }
 
+    private static String doRequest(
+            final HttpClient httpClient,
+            final String userInterfaceLanguage,
+            final HttpUrl url,
+            final String body,
+            final String contentType) throws IOException {
+        return doRequest(httpClient, userInterfaceLanguage, url, body, contentType, 0);
+    }
+
+    private String doRequest(final HttpUrl url, final String body, final long callTimeoutSecs) throws IOException {
+        return doRequest(httpClient, userInterfaceLanguage, url, body, null, callTimeoutSecs);
+    }
+
     private String doRequest(final HttpUrl url, final String body) throws IOException {
-        return doRequest(httpClient, userInterfaceLanguage, url, body, null);
+        return doRequest(url, body, 0);
     }
 
     private String doRequest(final HttpUrl url) throws IOException {
-        return doRequest(url, null);
+        return doRequest(url, null, 0);
+    }
+
+    private String doRequest(final HttpUrl url, final long callTimeoutSecs) throws IOException {
+        return doRequest(url, null, callTimeoutSecs);
     }
 
     private CharSequence formatDate(final Calendar time) {
@@ -847,7 +868,7 @@ public abstract class DbWebProvider extends DbProvider {
 
         String page = null;
         try {
-            page = doRequest(url, request);
+            page = doRequest(url, request, 30);
             final JSONObject res = new JSONObject(page);
             final Optional<JSONObject> verbindungReference = Optional.ofNullable(res.optJSONObject("verbindungReference"));
             final DbWebApiContext apiContext = new DbWebApiContext(from, via, to, time, dep, products, direct, bike, minUmstiegszeit,

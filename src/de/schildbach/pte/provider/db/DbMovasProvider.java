@@ -280,7 +280,12 @@ public abstract class DbMovasProvider extends DbProvider {
         return false;
     }
 
-    private String doRequest(final HttpUrl url, final String body, final String contentType) throws IOException {
+    private String doRequest(
+            final HttpUrl url,
+            final String body,
+            final String contentType,
+            final long callTimeoutSecs)
+            throws IOException {
         // DB API requires these headers
         // Content-Type must be exactly as passed below,
         // passing it to httpClient.get would add charset suffix
@@ -289,8 +294,16 @@ public abstract class DbMovasProvider extends DbProvider {
         httpClient.setHeader("Content-Type", contentType);
         if (this.userInterfaceLanguage != null)
             httpClient.setHeader("Accept-Language", this.userInterfaceLanguage);
-        final String page = httpClient.get(url, body, null).toString();
+        final String page = httpClient.get(url, body, null, callTimeoutSecs).toString();
         return page;
+    }
+
+    private String doRequest(
+            final HttpUrl url,
+            final String body,
+            final String contentType)
+            throws IOException {
+        return doRequest(url, body, contentType, 0);
     }
 
     private CharSequence formatDate(final Calendar time) {
@@ -833,7 +846,7 @@ public abstract class DbMovasProvider extends DbProvider {
 
         String page = null;
         try {
-            page = doRequest(url, request, contentType);
+            page = doRequest(url, request, contentType, 30);
             final JSONObject res = new JSONObject(page);
             final JSONArray verbindungen = res.getJSONArray("verbindungen");
             final List<Trip> trips = new ArrayList<>();

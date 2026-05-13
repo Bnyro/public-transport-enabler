@@ -878,7 +878,7 @@ public abstract class AbstractHafasClientInterfaceProvider extends AbstractHafas
         c.setTime(time);
 
         final HttpUrl url = requestUrl(request);
-        final CharSequence page = httpClient.get(url, request, "application/json");
+        final CharSequence page = httpClient.get(url, request, "application/json", 30);
 
         try {
             final JSONObject head = new JSONObject(page.toString());
