@@ -233,6 +233,26 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         return CAPABILITIES;
     }
 
+    @Override
+    public Description getDescription() {
+        return new Description.Base() {
+            @Override
+            public String getName() {
+                return "Transitous";
+            }
+
+            @Override
+            public String getDescriptionText() {
+                return "community-run provider-neutral international public transport routing service";
+            }
+
+            @Override
+            public String getUrl() {
+                return "https://transitous.org/sources/";
+            }
+        };
+    }
+
     protected static PTDate parseMotisDateTime(String dateTime, ZoneId zone) {
         final TemporalAccessor t = DateTimeFormatter.ISO_DATE_TIME.parse(dateTime);
         final ZonedDateTime odt = OffsetDateTime.from(t).atZoneSameInstant(zone);
