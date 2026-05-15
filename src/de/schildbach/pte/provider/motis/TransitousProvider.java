@@ -17,7 +17,10 @@
 
 package de.schildbach.pte.provider.motis;
 
+import java.util.Set;
+
 import de.schildbach.pte.NetworkId;
+import de.schildbach.pte.dto.Product;
 import okhttp3.HttpUrl;
 
 /**
@@ -25,6 +28,32 @@ import okhttp3.HttpUrl;
  */
 public class TransitousProvider extends AbstractMotisProvider {
     public TransitousProvider() {
-        super(NetworkId.TRANSITOUS, HttpUrl.parse("https://api.transitous.org"));
+        super(NetworkId.TRANSITOUS, HttpUrl.parse(
+                "https://api.transitous.org"));
+    }
+
+    @Override
+    public Description getDescription() {
+        return new Description.Base() {
+            @Override
+            public String getName() {
+                return "Transitous";
+            }
+
+            @Override
+            public String getDescriptionText() {
+                return "community-run provider-neutral international public transport routing service";
+            }
+
+            @Override
+            public String getUrl() {
+                return "https://transitous.org/sources/";
+            }
+        };
+    }
+
+    @Override
+    public Set<Product> defaultProducts() {
+        return Product.ALL_INCLUDING_HIGHSPEED;
     }
 }

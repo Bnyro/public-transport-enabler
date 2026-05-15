@@ -222,41 +222,12 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     protected AbstractMotisProvider(NetworkId network, HttpUrl apiBase) {
         super(network);
         httpClient.setHeader("Accept", "application/json");
-        // Complex routing requests (regional only, across the continent) take time to complete,
-        // the default timeout is insufficient
-        //  --> replaced by call-specific timeouts
-        //   httpClient.setTimeout(30, TimeUnit.SECONDS);
         this.apiBase = requireNonNull(apiBase);
     }
 
     @Override
     protected Set<Capability> getCapabilities() {
         return CAPABILITIES;
-    }
-
-    @Override
-    public Description getDescription() {
-        return new Description.Base() {
-            @Override
-            public String getName() {
-                return "Transitous";
-            }
-
-            @Override
-            public String getDescriptionText() {
-                return "community-run provider-neutral international public transport routing service";
-            }
-
-            @Override
-            public String getUrl() {
-                return "https://transitous.org/sources/";
-            }
-        };
-    }
-
-    @Override
-    public Set<Product> defaultProducts() {
-        return Product.ALL_INCLUDING_HIGHSPEED;
     }
 
     @Override
