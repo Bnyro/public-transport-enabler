@@ -18,6 +18,7 @@
 package de.schildbach.pte;
 
 import de.schildbach.pte.dto.Point;
+import de.schildbach.pte.provider.motis.NwexDirectionsRheinNeckarVerkehrProvider;
 import de.schildbach.pte.provider.motis.TransitousProvider;
 import de.schildbach.pte.provider.hafas.AvvAachenProvider;
 import de.schildbach.pte.provider.hafas.AvvAugsburgProvider;
@@ -141,6 +142,7 @@ public enum NetworkId {
     AVV_AACHEN(Descriptor.from(AvvAachenProvider.class, "de-DE", "Aachen")),
     MVG(Descriptor.from(MvgProvider.class, "de-DE", "Märkischer Kreis;Lüdenscheid")),
     VRN(Descriptor.from(VrnProvider.class, "de-DE", "Baden-Württemberg;Rheinland-Pfalz;Mannheim;Mainz;Trier")),
+    NWEXRNV(Descriptor.from(NwexDirectionsRheinNeckarVerkehrProvider.class, "de-DE", "Baden-Württemberg;Rheinland-Pfalz;Mannheim;Ludwigshafen;Heidelberg")),
     VVS(Descriptor.from(VvsProvider.class, "de-DE", "Baden-Württemberg;Stuttgart",
             new Point[] { Point.fromDouble(48.784068, 9.181713) })),
     DING(Descriptor.from(DingProvider.class, "de-DE", "Baden-Württemberg;Ulm;Neu-Ulm")),
