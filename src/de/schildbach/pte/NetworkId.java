@@ -142,7 +142,7 @@ public enum NetworkId {
     AVV_AACHEN(Descriptor.from(AvvAachenProvider.class, "de-DE", "Aachen")),
     MVG(Descriptor.from(MvgProvider.class, "de-DE", "Märkischer Kreis;Lüdenscheid")),
     VRN(Descriptor.from(VrnProvider.class, "de-DE", "Baden-Württemberg;Rheinland-Pfalz;Mannheim;Mainz;Trier")),
-    NWEXRNV(Descriptor.from(NwexDirectionsRheinNeckarVerkehrProvider.class, "de-DE", "Baden-Württemberg;Rheinland-Pfalz;Mannheim;Ludwigshafen;Heidelberg")),
+    NWEXRNV(Descriptor.from(NwexDirectionsRheinNeckarVerkehrProvider.class, "de-DE", "Baden-Württemberg;Rheinland-Pfalz;Mannheim;Ludwigshafen;Heidelberg", State.alpha)),
     VVS(Descriptor.from(VvsProvider.class, "de-DE", "Baden-Württemberg;Stuttgart",
             new Point[] { Point.fromDouble(48.784068, 9.181713) })),
     DING(Descriptor.from(DingProvider.class, "de-DE", "Baden-Württemberg;Ulm;Neu-Ulm")),
