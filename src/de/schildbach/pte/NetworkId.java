@@ -19,6 +19,7 @@ package de.schildbach.pte;
 
 import de.schildbach.pte.dto.Point;
 import de.schildbach.pte.provider.hafas.CflProvider;
+import de.schildbach.pte.provider.hafas.IrlProvider;
 import de.schildbach.pte.provider.motis.NwexDirectionsRheinNeckarVerkehrProvider;
 import de.schildbach.pte.provider.motis.TransitousProvider;
 import de.schildbach.pte.provider.hafas.AvvAachenProvider;
@@ -188,6 +189,9 @@ public enum NetworkId {
     // United Kingdom
     TLEM(Descriptor.from(TlemProvider.class, "en-UK", "GB;Greater London;Derbyshire;Leicestershire;Rutland;Northamptonshire;Nottinghamshire;Lincolnshire;Berkshire;Buckinghamshire;East Sussex;Hampshire;Isle of Wight;Kent;Oxfordshire;Surrey;West Sussex;Essex;Hertfordshire;Bedfordshire;Cambridgeshire;Norfolk;Suffolk;Somerset;Gloucestershire;Wiltshire;Dorset;Devon;Cornwall;West Devon;Stowford;Eastleigh;Swindon;Gloucester;Plymouth;Torbay;Bournemouth;Poole;Birmingham")),
     MERSEY(Descriptor.from(MerseyProvider.class, "en-UK", "GB;Liverpool", State.beta)),
+
+    // Ireland
+    IRL(Descriptor.from(IrlProvider.class, "en-IE", "IE;Dublin", State.alpha)),
 
     // Poland
     PL(Descriptor.from(PlProvider.class, "pl-PL", "PL;Warschau")),
