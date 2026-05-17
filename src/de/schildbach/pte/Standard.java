@@ -37,6 +37,7 @@ public class Standard {
     public static final int COLOR_BACKGROUND_SUBWAY = Style.parseColor("#003090");
     public static final int COLOR_BACKGROUND_TRAM = Style.parseColor("#cc0000");
     public static final int COLOR_BACKGROUND_BUS = Style.parseColor("#993399");
+    public static final int COLOR_BACKGROUND_COACH = Style.parseColor("#4CB300");
     public static final int COLOR_BACKGROUND_ON_DEMAND = Style.parseColor("#00695c");
     public static final int COLOR_BACKGROUND_FERRY = Style.parseColor("#0000ff");
     public static final int COLOR_BACKGROUND_REPLACEMENT_SERVICE = Style.parseColor("#805080");
@@ -51,6 +52,7 @@ public class Standard {
         STYLES.put(Product.SUBWAY, new Style(Shape.RECT, COLOR_BACKGROUND_SUBWAY, Style.WHITE));
         STYLES.put(Product.TRAM, new Style(Shape.RECT, COLOR_BACKGROUND_TRAM, Style.WHITE));
         STYLES.put(Product.BUS, new Style(Shape.ROUNDED, COLOR_BACKGROUND_BUS, Style.WHITE));
+        STYLES.put(Product.COACH, new Style(Shape.ROUNDED, COLOR_BACKGROUND_COACH, Style.WHITE));
         STYLES.put(Product.ON_DEMAND, new Style(Shape.ROUNDED, COLOR_BACKGROUND_ON_DEMAND, Style.WHITE));
         STYLES.put(Product.FERRY, new Style(Shape.CIRCLE, COLOR_BACKGROUND_FERRY, Style.WHITE));
         STYLES.put(Product.REPLACEMENT_SERVICE, new Style(Shape.ROUNDED, COLOR_BACKGROUND_REPLACEMENT_SERVICE, Style.WHITE));

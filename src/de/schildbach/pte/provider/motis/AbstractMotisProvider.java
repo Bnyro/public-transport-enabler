@@ -83,7 +83,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         MOTIS_MODE_MAP.put("SUBWAY", Product.SUBWAY);
         MOTIS_MODE_MAP.put("FERRY", Product.FERRY);
         MOTIS_MODE_MAP.put("BUS", Product.BUS);
-        MOTIS_MODE_MAP.put("COACH", Product.BUS);
+        MOTIS_MODE_MAP.put("COACH", Product.COACH);
         MOTIS_MODE_MAP.put("RAIL", Product.REGIONAL_TRAIN);
         MOTIS_MODE_MAP.put("HIGHSPEED_RAIL", Product.HIGH_SPEED_TRAIN);
         MOTIS_MODE_MAP.put("LONG_DISTANCE", Product.HIGH_SPEED_TRAIN);
@@ -102,7 +102,8 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         MOTIS_INDIVIDUAL_MODE_MAP.put("CAR", Trip.Individual.Type.CAR);
 
         MODE_MOTIS_MAP = new HashMap<>();
-        MODE_MOTIS_MAP.put(Product.BUS, new String[]{"BUS", "COACH"});
+        MODE_MOTIS_MAP.put(Product.BUS, new String[]{"BUS"});
+        MODE_MOTIS_MAP.put(Product.COACH, new String[]{"COACH"});
         MODE_MOTIS_MAP.put(Product.CABLECAR, new String[]{"FUNICULAR", "AERIAL_LIFT", "AREAL_LIFT", "CABLE_CAR"});
         MODE_MOTIS_MAP.put(Product.FERRY, new String[]{"FERRY"});
         MODE_MOTIS_MAP.put(Product.HIGH_SPEED_TRAIN, new String[]{"HIGHSPEED_RAIL", "LONG_DISTANCE", "NIGHT_RAIL"});

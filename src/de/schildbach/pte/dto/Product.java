@@ -40,9 +40,10 @@ public enum Product {
     FERRY('F'),
     CABLECAR('C'),
     ON_DEMAND('P'),
+    COACH('H'),
     REPLACEMENT_SERVICE('E');
 
-    private static EnumSet<Product> Join(EnumSet<Product> a, EnumSet<Product> b) {
+    private static EnumSet<Product> Join(final EnumSet<Product> a, final EnumSet<Product> b) {
         final EnumSet<Product> s = EnumSet.copyOf(a);
         s.addAll(b);
         return s;
@@ -55,9 +56,9 @@ public enum Product {
     public static final Set<Product> ALL_INCLUDING_HIGHSPEED = EnumSet
             .complementOf(NON_SELECTABLE);
     public static final Set<Product> ALL_EXCEPT_HIGHSPEED = EnumSet
-            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN), NON_SELECTABLE));
+            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN, COACH), NON_SELECTABLE));
     public static final Set<Product> ALL_EXCEPT_HIGHSPEED_AND_ONDEMAND = EnumSet
-            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN, ON_DEMAND), NON_SELECTABLE));
+            .complementOf(Join(EnumSet.of(HIGH_SPEED_TRAIN, COACH, ON_DEMAND), NON_SELECTABLE));
 
     public static final EnumSet<Product> TRAIN_PRODUCTS = EnumSet.of(
             HIGH_SPEED_TRAIN,
@@ -75,7 +76,7 @@ public enum Product {
 
     public final char code;
 
-    private Product(final char code) {
+    Product(final char code) {
         this.code = code;
     }
 
@@ -102,6 +103,8 @@ public enum Product {
             return CABLECAR;
         else if (code == ON_DEMAND.code)
             return ON_DEMAND;
+        else if (code == COACH.code)
+            return COACH;
         else if (code == REPLACEMENT_SERVICE.code)
             return REPLACEMENT_SERVICE;
         else
@@ -113,8 +116,8 @@ public enum Product {
             return null;
 
         final Set<Product> products = EnumSet.noneOf(Product.class);
-        for (int i = 0; i < codes.length; i++)
-            products.add(fromCode(codes[i]));
+        for (final char c : codes)
+            products.add(fromCode(c));
         return products;
     }
 
