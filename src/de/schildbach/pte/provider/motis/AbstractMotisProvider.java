@@ -128,11 +128,6 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         @Serial
         private static final long serialVersionUID = 7250525175653739883L;
 
-        protected Location from;
-        @Nullable
-        protected Location via;
-        protected Location to;
-
         @Nullable
         protected String nextPageCursor;
         @Nullable
