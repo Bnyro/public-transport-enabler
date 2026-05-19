@@ -130,7 +130,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         protected String previousPageCursor;
         protected String endpointUrl;
 
-        public MotisTripRef(NetworkId network, HttpUrl endpoint, Location from, @Nullable Location via, Location to, @Nullable String nextPageCursor, @Nullable String previousPageCursor) {
+        public MotisTripRef(final NetworkId network, final HttpUrl endpoint, final Location from, @Nullable final Location via, final Location to, @Nullable final String nextPageCursor, @Nullable final String previousPageCursor) {
             super(network, from, via, to);
             this.endpointUrl = endpoint.toString();
             this.nextPageCursor = nextPageCursor;
@@ -138,14 +138,14 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
 
         @Override
-        public void packToMessage(MessagePacker packer) throws IOException {
+        public void packToMessage(final MessagePacker packer) throws IOException {
             super.packToMessage(packer);
             MessagePackUtils.packNullableString(packer, previousPageCursor);
             MessagePackUtils.packNullableString(packer, nextPageCursor);
             MessagePackUtils.packNullableString(packer, endpointUrl);
         }
 
-        public MotisTripRef(NetworkId network, MessageUnpacker unpacker) throws IOException {
+        public MotisTripRef(final NetworkId network, final MessageUnpacker unpacker) throws IOException {
             super(network, unpacker);
             this.previousPageCursor = MessagePackUtils.unpackNullableString(unpacker);
             this.nextPageCursor = MessagePackUtils.unpackNullableString(unpacker);
@@ -167,10 +167,10 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (!(o instanceof MotisTripRef)) return false;
             if (!super.equals(o)) return false;
-            MotisTripRef that = (MotisTripRef) o;
+            final MotisTripRef that = (MotisTripRef) o;
             return Objects.equals(from, that.from) && Objects.equals(via, that.via) && Objects.equals(to, that.to) && Objects.equals(nextPageCursor, that.nextPageCursor) && Objects.equals(previousPageCursor, that.previousPageCursor) && Objects.equals(endpointUrl, that.endpointUrl);
         }
 
@@ -196,9 +196,9 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if (!(o instanceof MotisJourneyRef)) return false;
-            MotisJourneyRef that = (MotisJourneyRef) o;
+            final MotisJourneyRef that = (MotisJourneyRef) o;
             return Objects.equals(tripId, that.tripId);
         }
 
@@ -210,7 +210,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
 
     private final HttpUrl apiBase;
 
-    protected AbstractMotisProvider(NetworkId network, HttpUrl apiBase) {
+    protected AbstractMotisProvider(final NetworkId network, final HttpUrl apiBase) {
         super(network);
         httpClient.setHeader("Accept", "application/json");
         this.apiBase = requireNonNull(apiBase);
@@ -226,7 +226,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         return UserAgentType.APP;
     }
 
-    protected static TimeZone getMotisTimeZone(JSONObject jsonObject) {
+    protected static TimeZone getMotisTimeZone(final JSONObject jsonObject) {
         if (jsonObject == null)
             return null;
         final String tzString = jsonObject.optString("tz", null);
@@ -235,7 +235,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         return TimeZone.getTimeZone(tzString);
     }
 
-    protected static PTDate parseMotisDateTime(String dateTime, TimeZone timeZone) {
+    protected static PTDate parseMotisDateTime(final String dateTime, final TimeZone timeZone) {
         final long millis = OffsetDateTime.parse(dateTime).toInstant().toEpochMilli();
         if (timeZone == null) {
             return PTDate.withSystemOffset(millis);
@@ -244,7 +244,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
     }
     
-    protected static Line parseMotisLine(JSONObject data) throws JSONException {
+    protected static Line parseMotisLine(final JSONObject data) throws JSONException {
         return new Line(
                 data.getString("routeId"),
                 data.getString("agencyName"),
@@ -258,7 +258,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                         ) : null);
     }
 
-    protected static Stop parseMotisStop(JSONObject data, boolean realtime) throws JSONException {
+    protected static Stop parseMotisStop(final JSONObject data, final boolean realtime) throws JSONException {
         final Location location = parseMotisPlace(data);
         final TimeZone timeZone = getMotisTimeZone(data);
         final Function<String, PTDate> getDate = s -> parseMotisDateTime(s, timeZone);
@@ -278,7 +278,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         );
     }
 
-    protected static Location parseMotisPlace(JSONObject place) throws JSONException {
+    protected static Location parseMotisPlace(final JSONObject place) throws JSONException {
         final String motisStopId = place.optString("stopId");
         final String stopId = motisStopId == null || motisStopId.isEmpty() ? null : motisStopId;
         return new Location(
@@ -290,7 +290,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         );
     }
 
-    protected static Location parseMotisLocation(JSONObject location) throws JSONException, InvalidDataException {
+    protected static Location parseMotisLocation(final JSONObject location) throws JSONException, InvalidDataException {
         String place = null;
         final JSONArray areas = location.optJSONArray("areas");
         for (int ai = 0; ai < (areas != null ? areas.length() : 0); ai++) {
@@ -323,7 +323,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                         place,
                         name);
             case "STOP":
-                JSONArray modes = location.optJSONArray("modes");
+                final JSONArray modes = location.optJSONArray("modes");
                 final Set<Product> products = new HashSet<>();
                 for (int mi = 0; mi < (modes != null ? modes.length() : 0); mi++) {
                     final String mode = modes.getString(mi);
@@ -356,25 +356,25 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
     }
 
-    protected static Stream<Location> parseMotisLocations(String json) {
+    protected static Stream<Location> parseMotisLocations(final String json) {
         try {
             return parseMotisLocations(new JSONArray(json));
-        } catch (JSONException e) {
+        } catch (final JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected static Stream<Location> parseMotisLocations(JSONArray data) {
+    protected static Stream<Location> parseMotisLocations(final JSONArray data) {
         return IntStream.range(0, data.length()).mapToObj(i -> {
             try {
                 return parseMotisLocation(data.getJSONObject(i));
-            } catch (JSONException | InvalidDataException e) {
+            } catch (final JSONException | InvalidDataException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    protected Trip parseMotisItinerary(JSONObject data, TripRef ref) throws JSONException, InvalidDataException {
+    protected Trip parseMotisItinerary(final JSONObject data, final TripRef ref) throws JSONException, InvalidDataException {
         // TODO: Add support for fares
 
         final JSONArray motisLegs = data.getJSONArray("legs");
@@ -436,18 +436,18 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                 data.getInt("transfers"));
     }
 
-    protected Stream<Trip> parseMotisItineraries(JSONArray data, TripRef ref) {
+    protected Stream<Trip> parseMotisItineraries(final JSONArray data, final TripRef ref) {
         return IntStream.range(0, data.length()).mapToObj(i -> {
             try {
                 return parseMotisItinerary(data.getJSONObject(i), ref);
-            } catch (JSONException | InvalidDataException e) {
+            } catch (final JSONException | InvalidDataException e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
     @Override
-    public NearbyLocationsResult queryNearbyLocations(Set<LocationType> types, Location location, EquivalentStationsMode equivsMode, int maxDistance, int maxLocations, Set<Product> products) throws IOException {
+    public NearbyLocationsResult queryNearbyLocations(final Set<LocationType> types, final Location location, final EquivalentStationsMode equivsMode, final int maxDistance, final int maxLocations, final Set<Product> products) throws IOException {
         if (location.coord == null) {
             throw new IllegalArgumentException("cannot handle: " + location);
         }
@@ -474,7 +474,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
 
         final List<Location> locations = new ArrayList<>();
         final ResultHeader header = new ResultHeader(network, "MOTIS");
-        for (HttpUrl endpoint : endpoints) {
+        for (final HttpUrl endpoint : endpoints) {
             final CharSequence apiResult = httpClient.get(endpoint);
             try {
                 parseMotisLocations(apiResult.toString())
@@ -492,7 +492,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryDeparturesResult queryDepartures(String stationId, @Nullable Date time, int maxDepartures, EquivalentStationsMode equivsMode, @Nullable Set<Product> products) throws IOException {
+    public QueryDeparturesResult queryDepartures(final String stationId, @Nullable final Date time, final int maxDepartures, final EquivalentStationsMode equivsMode, @Nullable final Set<Product> products) throws IOException {
         final HttpUrl.Builder endpointBuilder = apiBase.newBuilder()
                 .addPathSegment("api")
                 .addPathSegment("v5")
@@ -511,12 +511,12 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         }
         
         if (products != null && !products.isEmpty()) {
-            List<String> motisModes = new ArrayList<>();
+            final List<String> motisModes = new ArrayList<>();
             if (products.contains(Product.HIGH_SPEED_TRAIN) && products.contains(Product.REGIONAL_TRAIN)) {
                 // All train types included, so include the catch-all category as well
                 motisModes.add("RAIL");
             }
-            for (Product p : products) {
+            for (final Product p : products) {
                 Collections.addAll(motisModes, MODE_MOTIS_MAP.get(p));
             }
 
@@ -525,9 +525,9 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
 
         final HttpUrl endpoint = endpointBuilder.build();
 
-        QueryDeparturesResult result = new QueryDeparturesResult(new ResultHeader(network, "MOTIS"));
-        Map<String, StationDepartures> stationMap = new HashMap<>();
-        Set<String> encounteredLines = new HashSet<>();
+        final QueryDeparturesResult result = new QueryDeparturesResult(new ResultHeader(network, "MOTIS"));
+        final Map<String, StationDepartures> stationMap = new HashMap<>();
+        final Set<String> encounteredLines = new HashSet<>();
 
         try {
             final CharSequence apiResult = httpClient.get(endpoint);
@@ -581,10 +581,10 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                         encounteredLines.add(line.id);
                     }
                 }
-            } catch (JSONException x) {
+            } catch (final JSONException x) {
                 throw new ParserException("cannot parse json: '" + apiResult + "' on " + endpoint, x);
             }
-        } catch (NotFoundException x) {
+        } catch (final NotFoundException x) {
             return new QueryDeparturesResult(new ResultHeader(network, "MOTIS"), QueryDeparturesResult.Status.INVALID_STATION);
         }
 
@@ -592,7 +592,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public SuggestLocationsResult suggestLocations(CharSequence constraint, @Nullable Set<LocationType> types, int maxLocations) throws IOException {
+    public SuggestLocationsResult suggestLocations(final CharSequence constraint, @Nullable final Set<LocationType> types, final int maxLocations) throws IOException {
         final HttpUrl.Builder endpointBuilder = apiBase.newBuilder()
                 .addPathSegment("api")
                 .addPathSegment("v1")
@@ -607,16 +607,16 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         // but this would needlessly spam the server,
         // so instead client side filtering is employed
 
-        CharSequence apiResult = httpClient.get(endpoint);
+        final CharSequence apiResult = httpClient.get(endpoint);
         try {
-            Stream<Location> locations = parseMotisLocations(apiResult.toString());
+            final Stream<Location> locations = parseMotisLocations(apiResult.toString());
             return new SuggestLocationsResult(
                     new ResultHeader(network, "MOTIS"),
                     locations
                             .filter(l -> types == null || types.contains(l.type))
                             .map(SuggestedLocation::new)
                             .collect(Collectors.toList()));
-        } catch (RuntimeException e) {
+        } catch (final RuntimeException e) {
             if (e.getCause() instanceof JSONException) {
                 final JSONException x = (JSONException) e.getCause();
                 throw new ParserException("cannot parse json: '" + apiResult + "' on " + endpoint, x);
@@ -626,12 +626,12 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public TripRef unpackTripRefFromMessage(MessageUnpacker unpacker) throws IOException {
+    public TripRef unpackTripRefFromMessage(final MessageUnpacker unpacker) throws IOException {
         return new MotisTripRef(network, unpacker);
     }
 
     @Override
-    public QueryTripsResult queryTrips(Location from, @Nullable Location via, Location to, Date date, boolean dep, @Nullable TripOptions options, boolean loadPath) throws IOException {
+    public QueryTripsResult queryTrips(final Location from, @Nullable final Location via, final Location to, final Date date, final boolean dep, @Nullable final TripOptions options, final boolean loadPath) throws IOException {
         final HttpUrl.Builder endpointBuilder = apiBase.newBuilder()
                 .addPathSegment("api")
                 .addPathSegment("v5")
@@ -682,12 +682,12 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
             }
             // TODO: Figure out how to map walking speed enum to API walking speeds
             if (options.products != null) {
-                List<String> motisModes = new ArrayList<>();
+                final List<String> motisModes = new ArrayList<>();
                 if (options.products.contains(Product.HIGH_SPEED_TRAIN) && options.products.contains(Product.REGIONAL_TRAIN)) {
                     // All train types included, so include the catch-all category as well
                     motisModes.add("RAIL");
                 }
-                for (Product p : options.products) {
+                for (final Product p : options.products) {
                     Collections.addAll(motisModes, MODE_MOTIS_MAP.get(p));
                 }
 
@@ -705,7 +705,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     }
 
     @Override
-    public QueryTripsResult queryMoreTrips(QueryTripsContext context, boolean later, boolean loadPath) throws IOException {
+    public QueryTripsResult queryMoreTrips(final QueryTripsContext context, final boolean later, final boolean loadPath) throws IOException {
         if (!(context instanceof MotisTripRef)) {
             throw new IllegalArgumentException("Wrong context");
         }
@@ -721,7 +721,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         return actualQueryTrips(endpointWithCursor, ((MotisTripRef) context).from, ((MotisTripRef) context).via, ((MotisTripRef) context).to, loadPath);
     }
 
-    protected QueryTripsResult actualQueryTrips(@Nonnull HttpUrl endpoint, @Nonnull Location from, @Nullable Location via, @Nonnull Location to, boolean loadPath) throws IOException {
+    protected QueryTripsResult actualQueryTrips(@Nonnull final HttpUrl endpoint, @Nonnull final Location from, @Nullable final Location via, @Nonnull final Location to, final boolean loadPath) throws IOException {
         final HttpUrl.Builder b = endpoint.newBuilder();
         b.removeAllQueryParameters("detailedTransfers");
         
@@ -742,7 +742,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
             try {
                 parseMotisItineraries(itineraries, new MotisTripRef(network, endpoint, from, via, to, null, null)).forEach(trips::add);
                 parseMotisItineraries(direct, new MotisTripRef(network, endpoint, from, via, to, null, null)).forEach(trips::add);
-            } catch (RuntimeException e) {
+            } catch (final RuntimeException e) {
                 if (e.getCause() instanceof JSONException) {
                     throw (JSONException) e.getCause();
                 }
@@ -758,18 +758,18 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                     new MotisTripRef(network, endpoint, from, via, to, data.optString("nextPageCursor"), data.optString("previousPageCursor")),
                     trips
             );
-        } catch (JSONException x) {
+        } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + apiResult + "' on " + endpoint, x);
         }
     }
 
     @Override
-    public Trip queryTripDetails(Trip trip, List<TripDetails> whichDetails) throws IOException {
+    public Trip queryTripDetails(final Trip trip, final List<TripDetails> whichDetails) throws IOException {
         return super.queryTripDetails(trip, whichDetails);
     }
 
     @Override
-    public QueryJourneyResult queryJourney(JourneyRef journeyRef, boolean loadPath) throws IOException {
+    public QueryJourneyResult queryJourney(final JourneyRef journeyRef, final boolean loadPath) throws IOException {
         final HttpUrl.Builder endpointBuilder = apiBase.newBuilder()
                 .addPathSegment("api")
                 .addPathSegment("v5")
@@ -792,13 +792,13 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                     journeyRef,
                     (Trip.Public) trip.legs.get(0)
             );
-        } catch (JSONException x) {
+        } catch (final JSONException x) {
             throw new ParserException("cannot parse json: '" + apiResult + "' on " + endpoint, x);
         }
     }
 
     @Override
-    public QueryTripsResult queryReloadTrip(TripRef tripRef, boolean loadPath) throws IOException {
+    public QueryTripsResult queryReloadTrip(final TripRef tripRef, final boolean loadPath) throws IOException {
         if (tripRef.network != network || !(tripRef instanceof MotisTripRef)) {
             throw new IllegalArgumentException("cannot handle: " + tripRef);
         }
