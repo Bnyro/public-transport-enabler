@@ -549,8 +549,9 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                         continue;
                     }
 
-                    if (!stationMap.containsKey(departureStopId)) {
-                        final StationDepartures sd = new StationDepartures(
+                    StationDepartures sd = stationMap.get(departureStopId);
+                    if (sd == null) {
+                        sd = new StationDepartures(
                                 parseMotisPlace(place),
                                 new ArrayList<>(),
                                 new ArrayList<>());
@@ -562,7 +563,6 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
 
                     final Location destination = parseMotisPlace(stopTime.getJSONObject("tripTo"));
 
-                    final StationDepartures sd = stationMap.get(departureStopId);
                     final TimeZone timeZone = getMotisTimeZone(place);
                     sd.departures.add(new Departure(
                             parseMotisDateTime(place.getString("scheduledDeparture"), timeZone),
