@@ -39,15 +39,10 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serial;
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -231,10 +226,22 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         return UserAgentType.APP;
     }
 
-    protected static PTDate parseMotisDateTime(String dateTime, ZoneId zone) {
-        final TemporalAccessor t = DateTimeFormatter.ISO_DATE_TIME.parse(dateTime);
-        final ZonedDateTime odt = OffsetDateTime.from(t).atZoneSameInstant(zone);
-        return new PTDate(Date.from(Instant.from(odt)), TimeZone.getTimeZone(odt.getZone()));
+    protected static TimeZone getMotisTimeZone(JSONObject jsonObject) {
+        if (jsonObject == null)
+            return null;
+        final String tzString = jsonObject.optString("tz", null);
+        if (tzString == null)
+            return null;
+        return TimeZone.getTimeZone(tzString);
+    }
+
+    protected static PTDate parseMotisDateTime(String dateTime, TimeZone timeZone) {
+        final long millis = OffsetDateTime.parse(dateTime).toInstant().toEpochMilli();
+        if (timeZone == null) {
+            return PTDate.withSystemOffset(millis);
+        } else {
+            return new PTDate(millis, timeZone);
+        }
     }
     
     protected static Line parseMotisLine(JSONObject data) throws JSONException {
@@ -253,8 +260,8 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
 
     protected static Stop parseMotisStop(JSONObject data, boolean realtime) throws JSONException {
         final Location location = parseMotisPlace(data);
-        final TimeZone tz = TimeZone.getTimeZone(data.getString("tz"));
-        final Function<String, PTDate> getDate = s -> parseMotisDateTime(s, tz.toZoneId());
+        final TimeZone timeZone = getMotisTimeZone(data);
+        final Function<String, PTDate> getDate = s -> parseMotisDateTime(s, timeZone);
 
         return new Stop(
                 location,
@@ -556,9 +563,10 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                     final Location destination = parseMotisPlace(stopTime.getJSONObject("tripTo"));
 
                     final StationDepartures sd = stationMap.get(departureStopId);
+                    final TimeZone timeZone = getMotisTimeZone(place);
                     sd.departures.add(new Departure(
-                            parseMotisDateTime(place.getString("scheduledDeparture"), ZoneId.of(place.getString("tz"))),
-                            parseMotisDateTime(place.getString("departure"), ZoneId.of(place.getString("tz"))),
+                            parseMotisDateTime(place.getString("scheduledDeparture"), timeZone),
+                            parseMotisDateTime(place.getString("departure"), timeZone),
                             line,
                             place.has("scheduledTrack") ? new Position(place.getString("scheduledTrack")) : null,
                             place.has("track") ? new Position(place.getString("track")) : null,
