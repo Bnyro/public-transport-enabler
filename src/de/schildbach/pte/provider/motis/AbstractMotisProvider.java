@@ -279,7 +279,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
     }
 
     protected static Location parseMotisPlace(final JSONObject place) throws JSONException {
-        final String motisStopId = place.optString("stopId");
+        final String motisStopId = place.optString("stopId", null);
         final String stopId = motisStopId == null || motisStopId.isEmpty() ? null : motisStopId;
         return new Location(
                 LocationType.STATION,
@@ -305,7 +305,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
         String name = location.getString("name");
 
         final String motisType = location.getString("type");
-        final String motisLocationId = location.optString("id");
+        final String motisLocationId = location.optString("id", null);
         final String locationId = motisLocationId == null || motisLocationId.isEmpty() ? null : motisLocationId;
         switch (motisType) {
             case "ADDRESS":
@@ -755,7 +755,7 @@ public class AbstractMotisProvider extends AbstractNetworkProvider {
                     from,
                     via,
                     to,
-                    new MotisTripRef(network, endpoint, from, via, to, data.optString("nextPageCursor"), data.optString("previousPageCursor")),
+                    new MotisTripRef(network, endpoint, from, via, to, data.optString("nextPageCursor", null), data.optString("previousPageCursor", null)),
                     trips
             );
         } catch (final JSONException x) {
